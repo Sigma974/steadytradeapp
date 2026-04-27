@@ -13,9 +13,9 @@ export default function PrivacyPage() {
           Le responsable du traitement des données personnelles collectées via le Service Steady est :
         </p>
         <p className="bg-slate-800/50 rounded-lg p-3 font-mono text-xs">
-          [Nom / Dénomination sociale]<br />
-          [Adresse postale]<br />
-          [Email de contact] — <span className="text-slate-400">à remplir</span>
+          SIGMA — Micro-entreprise<br />
+          190 rue sainte marie app 6, 97400 Saint-Denis<br />
+          <span className="text-amber-400/70 italic">[email — à remplir]</span>
         </p>
       </Section>
 
@@ -89,7 +89,7 @@ export default function PrivacyPage() {
           <li><strong className="text-slate-300">Droit à la limitation</strong> — limiter le traitement de vos données.</li>
         </ul>
         <p>
-          Pour exercer ces droits, contactez : <span className="text-slate-300">[email DPO — à remplir]</span>.
+          Pour exercer ces droits, contactez : <span className="text-amber-400/70 italic">[email — à remplir]</span>.
           Nous répondrons dans un délai maximum de 30 jours.
         </p>
         <p>

@@ -9,17 +9,16 @@ export default function LegalNoticePage() {
       <p className="text-slate-500 text-sm mb-8">Conformément à l&apos;article 6 de la loi n° 2004-575 du 21 juin 2004 pour la confiance dans l&apos;économie numérique (LCEN)</p>
 
       <Section title="Éditeur du site">
-        <Row label="Nom / Dénomination sociale" value="[À remplir]" />
-        <Row label="Forme juridique" value="[À remplir]" />
-        <Row label="Capital social" value="[À remplir]" />
-        <Row label="Siège social" value="[Adresse — à remplir]" />
-        <Row label="SIRET" value="[À remplir]" />
-        <Row label="Email de contact" value="[À remplir]" />
+        <Row label="Nom / Dénomination sociale" value="SIGMA" />
+        <Row label="Forme juridique" value="Micro-entreprise" />
+        <Row label="Siège social" value="190 rue sainte marie app 6, 97400 Saint-Denis" />
+        <Row label="SIRET" value="en cours d'immatriculation" />
+        <Row label="Email de contact" value="[email — à remplir]" />
       </Section>
 
       <Section title="Directeur de la publication">
-        <Row label="Nom" value="[À remplir]" />
-        <Row label="Email" value="[À remplir]" />
+        <Row label="Nom" value="Techer Clément" />
+        <Row label="Email" value="[email — à remplir]" />
       </Section>
 
       <Section title="Hébergement de l'application">
@@ -64,8 +63,9 @@ export default function LegalNoticePage() {
       <Section title="Médiation de la consommation">
         <p>
           Conformément à l&apos;article L.616-1 du Code de la consommation, en cas de litige
-          non résolu avec l&apos;Éditeur, vous pouvez recourir à un médiateur de la consommation.
-          Coordonnées du médiateur : [À remplir].
+          non résolu avec l&apos;Éditeur, vous pouvez recourir gratuitement à un médiateur de la
+          consommation. La Commission Européenne met à disposition une plateforme de règlement
+          en ligne des litiges accessible à l&apos;adresse : ec.europa.eu/consumers/odr
         </p>
       </Section>
     </div>

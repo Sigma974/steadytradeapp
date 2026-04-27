@@ -12,7 +12,7 @@ export default function TermsPage() {
         <p>
           Les présentes Conditions Générales d&apos;Utilisation (CGU) régissent l&apos;accès et l&apos;utilisation
           du service Steady (ci-après « le Service »), plateforme d&apos;analytics destinée aux traders
-          utilisant l&apos;exchange décentralisé Hyperliquid. Le Service est fourni par [Nom / Société]
+          utilisant l&apos;exchange décentralisé Hyperliquid. Le Service est fourni par SIGMA, micro-entreprise
           (ci-après « l&apos;Éditeur »).
         </p>
       </Section>
