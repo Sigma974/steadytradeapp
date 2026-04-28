@@ -15,13 +15,41 @@
     },
     "meta": {
       "tradesInfo": "{trades} trades · {fills} fills · fetched {time}",
-      "viewProfile": "View public profile ↗"
+      "viewProfile": "View public profile ↗",
+    "viewTrades": "All trades ↗"
     },
     "emptyState": {
       "hint": "Enter a Hyperliquid address to analyze trading performance.",
       "readonly": "Read-only — no wallet connection required."
     },
     "noTrades": "No closed trades found for this address in the selected period."
+  },
+  "TradesPage": {
+    "title": "All Trades",
+    "backToTrader": "← Back to trader",
+    "exportCsv": "Export CSV",
+    "filterAllCoins": "All coins",
+    "filterAll": "All",
+    "filterLong": "Long",
+    "filterShort": "Short",
+    "noTrades": "No trades match the selected filters.",
+    "nTrades": "{n} trades",
+    "fetchError": "Could not load trade data.",
+    "colCoin": "Coin",
+    "colSide": "Direction",
+    "colOpen": "Open",
+    "colClose": "Close",
+    "colDuration": "Duration",
+    "colEntry": "Entry",
+    "colExit": "Exit",
+    "colSize": "Size",
+    "colPnl": "PnL",
+    "colFees": "Fees",
+    "colFills": "Fills",
+    "totalRow": "Total ({n} trades)",
+    "loading": "Loading trades…",
+    "metaTitle": "{n} trades — {address} · Steady",
+    "metaTitleEmpty": "Trades — {address} · Steady"
   },
   "TraderPage": {
     "fetchingHistory": "Fetching trade history",
@@ -30,6 +58,7 @@
     "copyAddress": "Copy address",
     "copied": "Copied!",
     "viewOnHL": "View on Hyperliquid ↗",
+    "viewTrades": "All trades",
     "shareOnX": "Share on X",
     "compareToMe": "Compare to me",
     "noTrades": "No trades found for this address in the last {n} days.",

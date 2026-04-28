@@ -73,6 +73,8 @@ export default function Home() {
 
   const traderProfileHref =
     locale === "fr" ? `/fr/trader/${lastAddress}` : `/trader/${lastAddress}`;
+  const tradesHref =
+    locale === "fr" ? `/fr/trades/${lastAddress}?days=${daysBack}` : `/trades/${lastAddress}?days=${daysBack}`;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -155,12 +157,20 @@ export default function Home() {
                   })}
                 </span>
                 {lastAddress && (
-                  <Link
-                    href={traderProfileHref}
-                    className="text-xs px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors whitespace-nowrap"
-                  >
-                    {t("meta.viewProfile")}
-                  </Link>
+                  <>
+                    <Link
+                      href={traderProfileHref}
+                      className="text-xs px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors whitespace-nowrap"
+                    >
+                      {t("meta.viewProfile")}
+                    </Link>
+                    <Link
+                      href={tradesHref}
+                      className="text-xs px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors whitespace-nowrap"
+                    >
+                      {t("meta.viewTrades")}
+                    </Link>
+                  </>
                 )}
               </div>
             </div>

@@ -116,6 +116,7 @@ export default function TraderClient({ address, initialData, daysBack }: Props) 
   const t = useTranslations("TraderPage");
   const locale = useLocale();
   const homeHref = locale === "fr" ? "/fr" : "/";
+  const tradesHref = locale === "fr" ? `/fr/trades/${address}?days=${daysBack}` : `/trades/${address}?days=${daysBack}`;
 
   const [data, setData] = useState<SyncData | null>(initialData);
   const [error, setError] = useState<string | null>(null);
@@ -223,6 +224,9 @@ export default function TraderClient({ address, initialData, daysBack }: Props) 
             <a href={`${HL_EXPLORER}?address=${address}`} target="_blank" rel="noopener noreferrer" className="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700">
               {t("viewOnHL")}
             </a>
+            <Link href={tradesHref} className="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700">
+              {t("viewTrades")}
+            </Link>
             {data && data.tradeCount > 0 && (
               <a href={buildTweet(data)} target="_blank" rel="noopener noreferrer" className="text-xs px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white transition-colors font-semibold">
                 {t("shareOnX")}
