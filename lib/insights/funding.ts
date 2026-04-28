@@ -1,6 +1,5 @@
 import { Trade } from "../trade-reconstruction";
-
-const HYPERLIQUID_API_URL = "https://api.hyperliquid.xyz/info";
+import { hlFetch, sleep } from "../hl-fetch";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -20,12 +19,13 @@ export interface FundingCoinSummary {
 }
 
 export interface FundingInsight {
-  totalFunding: number;          // net total (negative = net payer)
-  totalPaid: number;             // absolute sum of negative payments (>= 0)
-  totalReceived: number;         // absolute sum of positive payments (>= 0)
+  totalFunding: number;           // net total (negative = net payer)
+  totalPaid: number;              // absolute sum of negative payments (>= 0)
+  totalReceived: number;          // absolute sum of positive payments (>= 0)
   paymentCount: number;
-  byCoin: FundingCoinSummary[];  // sorted by |total| desc
+  byCoin: FundingCoinSummary[];   // sorted by |total| desc
   fundingVsNetPnl: number | null; // totalFunding / netPnl; null if netPnl = 0
+  rateLimited?: boolean;          // true when HL returned 429 after all retries
 }
 
 // ---------------------------------------------------------------------------
@@ -58,15 +58,7 @@ export async function fetchUserFunding(
   const seenKeys = new Set<string>();
 
   while (true) {
-    const resp = await fetch(HYPERLIQUID_API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (!resp.ok) throw new Error(`Hyperliquid funding API error: ${resp.status}`);
-
-    const batch = (await resp.json()) as RawFundingEvent[];
+    const batch = (await hlFetch(payload)) as RawFundingEvent[];
     if (!batch.length) break;
 
     const newPayments: FundingPayment[] = [];
@@ -91,6 +83,7 @@ export async function fetchUserFunding(
 
     const latestMs = Math.max(...newPayments.map((p) => p.timeMs));
     payload.startTime = latestMs + 1;
+    await sleep(150);
   }
 
   return allPayments;

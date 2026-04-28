@@ -1,4 +1,5 @@
-const HYPERLIQUID_API_URL = "https://api.hyperliquid.xyz/info";
+import { hlFetch, sleep } from "./hl-fetch";
+
 const EPSILON = 1e-8;
 
 export type Side = "long" | "short";
@@ -226,15 +227,7 @@ export async function fetchUserFills(
   const seenTids = new Set<number>();
 
   while (true) {
-    const resp = await fetch(HYPERLIQUID_API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (!resp.ok) throw new Error(`Hyperliquid API error: ${resp.status}`);
-
-    const batch = (await resp.json()) as Record<string, unknown>[];
+    const batch = (await hlFetch(payload)) as Record<string, unknown>[];
 
     if (!batch.length) break;
 
@@ -252,9 +245,11 @@ export async function fetchUserFills(
 
     if (batch.length < 2000) break;
 
-    // Paginate: advance startTime past the last seen fill
+    // Paginate: advance startTime past the last seen fill.
+    // Small pause to stay well under Hyperliquid's rate limit.
     const latestTime = Math.max(...newFills.map((f) => f.timeMs));
     payload.startTime = latestTime + 1;
+    await sleep(150);
   }
 
   return allFills;

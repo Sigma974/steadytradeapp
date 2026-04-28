@@ -31,6 +31,21 @@ export default function FundingCard({ insight }: Props) {
     return t("insightNeutral");
   })();
 
+  if (insight.rateLimited) {
+    return (
+      <Card className="bg-slate-900 border-slate-800 h-full">
+        <CardHeader className="pb-2 pt-4 px-4">
+          <CardTitle className="text-sm font-semibold text-slate-200">
+            {t("title")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-4 pb-4">
+          <p className="text-xs text-amber-500">{t("rateLimited")}</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (paymentCount === 0) {
     return (
       <Card className="bg-slate-900 border-slate-800 h-full">

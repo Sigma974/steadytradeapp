@@ -30,6 +30,7 @@ import {
 } from "@/lib/db-cache";
 import type { SyncData, SerializedRevengeInsight } from "@/lib/api-types";
 import { SCHEMA_VERSION } from "@/lib/api-types";
+import { HLRateLimitError } from "@/lib/hl-fetch";
 
 interface SyncRequest {
   address: string;
@@ -147,10 +148,25 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const end = endTime ? new Date(endTime) : undefined;
 
   try {
-    const [fills, fundingPayments] = await Promise.all([
+    const [fillsResult, fundingResult] = await Promise.allSettled([
       fetchUserFills(address, start, end),
       fetchUserFunding(address, start, end),
     ]);
+
+    // Fills are critical — propagate any error
+    if (fillsResult.status === "rejected") throw fillsResult.reason;
+    const fills = fillsResult.value;
+
+    // Funding is optional — degrade gracefully on rate limit
+    const fundingRateLimited =
+      fundingResult.status === "rejected" &&
+      fundingResult.reason instanceof HLRateLimitError;
+    if (fundingResult.status === "rejected" && !fundingRateLimited) {
+      throw fundingResult.reason;
+    }
+    const fundingPayments =
+      fundingResult.status === "fulfilled" ? fundingResult.value : [];
+
     const trades = reconstructTrades(fills);
     const revenge = detectRevengeTrades(trades, revengeWindowSeconds);
 
@@ -180,7 +196,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         leverage: computeLeverageEffect(trades),
         weekday: computeWeekdayPerformance(trades),
         holdTime: computeHoldTimeEffect(trades),
-        funding: computeFundingInsight(fundingPayments, trades),
+        funding: { ...computeFundingInsight(fundingPayments, trades), rateLimited: fundingRateLimited || undefined },
         directionWinRate: computeDirectionWinRate(trades),
         rr: computeRRInsight(trades),
         tpsl: computeTPSLInsight(trades),

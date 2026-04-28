@@ -2,7 +2,7 @@ import { supabase } from "./supabase";
 import type { SyncData } from "./api-types";
 import { SCHEMA_VERSION } from "./api-types";
 
-const CACHE_TTL_MINUTES = 5;
+const CACHE_TTL_MINUTES = 60;
 const RATE_LIMIT_MAX = 20;       // requests
 const RATE_LIMIT_WINDOW_MIN = 60; // per hour
 

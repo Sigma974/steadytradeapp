@@ -171,7 +171,8 @@
       "insightPayer": "You paid {amount} in funding fees — {pct} of your net P&L.",
       "insightPayerNoPct": "You paid {amount} in funding fees.",
       "insightReceiver": "You received {amount} in net funding (you hold extended short positions).",
-      "insightNeutral": "Net funding zero over the period."
+      "insightNeutral": "Net funding zero over the period.",
+      "rateLimited": "Funding data unavailable (rate limited by Hyperliquid)."
     },
     "Equity": {
       "title": "Equity Curve",

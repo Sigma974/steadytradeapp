@@ -171,7 +171,8 @@
       "insightPayer": "Tu as payé {amount} de frais de funding — représente {pct} de ton PnL net.",
       "insightPayerNoPct": "Tu as payé {amount} de frais de funding.",
       "insightReceiver": "Tu as reçu {amount} de funding net (tu portes des positions shorts prolongées).",
-      "insightNeutral": "Funding net nul sur la période."
+      "insightNeutral": "Funding net nul sur la période.",
+      "rateLimited": "Données de funding indisponibles (rate limit Hyperliquid)."
     },
     "Equity": {
       "title": "Courbe de capital",
