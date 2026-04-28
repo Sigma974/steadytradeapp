@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { SyncData } from "@/lib/api-types";
@@ -13,6 +14,10 @@ import LeverageCard from "@/components/dashboard/LeverageCard";
 import WeekdayCard from "@/components/dashboard/WeekdayCard";
 import HoldTimeCard from "@/components/dashboard/HoldTimeCard";
 import FundingCard from "@/components/dashboard/FundingCard";
+import DirectionCard from "@/components/dashboard/DirectionCard";
+import RRCard from "@/components/dashboard/RRCard";
+import TPSLCard from "@/components/dashboard/TPSLCard";
+import RecentWRCard from "@/components/dashboard/RecentWRCard";
 
 const DAYS_OPTIONS = [
   { label: "7 days", value: 7 },
@@ -26,6 +31,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<SyncData | null>(null);
+  const [lastAddress, setLastAddress] = useState("");
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -47,7 +53,11 @@ export default function Home() {
         return;
       }
 
-      setData(json as SyncData);
+      const syncData = json as SyncData;
+      setData(syncData);
+      const trimmed = address.trim();
+      setLastAddress(trimmed);
+      try { localStorage.setItem("steady_my_address", trimmed); } catch {}
     } catch {
       setError("Network error — could not reach the server.");
     } finally {
@@ -124,10 +134,20 @@ export default function Home() {
             {/* Meta */}
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
               <span className="font-mono truncate">{data.address}</span>
-              <span>
-                {data.tradeCount} trades · {data.fillCount} fills · fetched{" "}
-                {new Date(data.fetchedAt).toLocaleTimeString()}
-              </span>
+              <div className="flex items-center gap-3">
+                <span>
+                  {data.tradeCount} trades · {data.fillCount} fills · fetched{" "}
+                  {new Date(data.fetchedAt).toLocaleTimeString()}
+                </span>
+                {lastAddress && (
+                  <Link
+                    href={`/trader/${lastAddress}`}
+                    className="text-xs px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors whitespace-nowrap"
+                  >
+                    View public profile ↗
+                  </Link>
+                )}
+              </div>
             </div>
 
             {/* Stat cards */}
@@ -147,11 +167,15 @@ export default function Home() {
               <HoldTimeCard insight={data.insights.holdTime} />
             </div>
 
-            {/* Funding + Buy & hold */}
+            {/* Direction WR + RR + TP/SL + Funding + Buy & hold */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <DirectionCard insight={data.insights.directionWinRate} />
+              <RRCard insight={data.insights.rr} />
+              <TPSLCard insight={data.insights.tpsl} />
+              <RecentWRCard insight={data.insights.recentWinRate} />
               <FundingCard insight={data.insights.funding} />
               {data.insights.buyHold.byCoin.length > 0 && (
-                <div className="lg:col-span-2">
+                <div className="lg:col-span-3">
                   <BuyHoldTable insight={data.insights.buyHold} />
                 </div>
               )}

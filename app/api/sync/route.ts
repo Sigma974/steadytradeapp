@@ -16,6 +16,10 @@ import { computeLeverageEffect } from "@/lib/insights/leverage";
 import { computeWeekdayPerformance } from "@/lib/insights/weekday";
 import { computeHoldTimeEffect } from "@/lib/insights/holdtime";
 import { fetchUserFunding, computeFundingInsight } from "@/lib/insights/funding";
+import { computeDirectionWinRate } from "@/lib/insights/direction";
+import { computeRRInsight } from "@/lib/insights/rr";
+import { computeTPSLInsight } from "@/lib/insights/tpsl";
+import { computeRecentWinRate } from "@/lib/insights/recentwr";
 import {
   getCachedSync,
   setCachedSync,
@@ -176,6 +180,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         weekday: computeWeekdayPerformance(trades),
         holdTime: computeHoldTimeEffect(trades),
         funding: computeFundingInsight(fundingPayments, trades),
+        directionWinRate: computeDirectionWinRate(trades),
+        rr: computeRRInsight(trades),
+        tpsl: computeTPSLInsight(trades),
+        recentWinRate: computeRecentWinRate(trades),
       },
     };
 

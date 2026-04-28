@@ -8,8 +8,12 @@ import type { LeverageInsight } from "./insights/leverage";
 import type { WeekdayInsight } from "./insights/weekday";
 import type { HoldTimeInsight } from "./insights/holdtime";
 import type { FundingInsight } from "./insights/funding";
+import type { DirectionWinRateInsight } from "./insights/direction";
+import type { RRInsight } from "./insights/rr";
+import type { TPSLInsight } from "./insights/tpsl";
+import type { RecentWinRateInsight } from "./insights/recentwr";
 
-export type { GeneralStats, HourlyPerformanceInsight, BuyHoldInsight, StreakInsight, LeverageInsight, WeekdayInsight, HoldTimeInsight, FundingInsight };
+export type { GeneralStats, HourlyPerformanceInsight, BuyHoldInsight, StreakInsight, LeverageInsight, WeekdayInsight, HoldTimeInsight, FundingInsight, DirectionWinRateInsight, RRInsight, TPSLInsight, RecentWinRateInsight };
 
 export interface SerializedTrade {
   coin: string;
@@ -60,7 +64,7 @@ export interface SerializedFill {
 
 // Bump this whenever SyncData.insights gains or changes fields.
 // getCachedSync rejects entries with a mismatched version, forcing a re-fetch.
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 8;
 
 export interface SyncData {
   schemaVersion: number;
@@ -80,5 +84,9 @@ export interface SyncData {
     weekday: WeekdayInsight;
     holdTime: HoldTimeInsight;
     funding: FundingInsight;
+    directionWinRate: DirectionWinRateInsight;
+    rr: RRInsight;
+    tpsl: TPSLInsight;
+    recentWinRate: RecentWinRateInsight;
   };
 }
