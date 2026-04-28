@@ -37,7 +37,14 @@
     "compareTitle": "Compare to me",
     "compareLoading": "Loading your data…",
     "compareError": "Could not load your data.",
-    "compareYou": "You ({address})"
+    "compareYou": "You ({address})",
+    "compareWinRate": "Win Rate",
+    "compareTotalPnl": "P&L",
+    "compareTrades": "Trades",
+    "compareProfitFactor": "Profit Factor",
+    "compareRR": "Realized RR",
+    "compareLongWR": "Long WR",
+    "compareShortWR": "Short WR"
   },
   "Cards": {
     "StatGrid": {
@@ -165,6 +172,11 @@
       "insightPayerNoPct": "You paid {amount} in funding fees.",
       "insightReceiver": "You received {amount} in net funding (you hold extended short positions).",
       "insightNeutral": "Net funding zero over the period."
+    },
+    "Equity": {
+      "title": "Equity Curve",
+      "notEnough": "Not enough trades.",
+      "maxDrawdown": "Max drawdown:"
     },
     "BuyHold": {
       "title": "Buy & Hold vs Active Trading",

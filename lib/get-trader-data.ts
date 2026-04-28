@@ -19,6 +19,7 @@ import { computeDirectionWinRate } from "./insights/direction";
 import { computeRRInsight } from "./insights/rr";
 import { computeTPSLInsight } from "./insights/tpsl";
 import { computeRecentWinRate } from "./insights/recentwr";
+import { computeEquityCurve } from "./insights/equity";
 import { getCachedSync, setCachedSync } from "./db-cache";
 import type { SyncData, SerializedRevengeInsight } from "./api-types";
 import { SCHEMA_VERSION } from "./api-types";
@@ -88,6 +89,7 @@ export async function getTraderData(
       rr: computeRRInsight(trades),
       tpsl: computeTPSLInsight(trades),
       recentWinRate: computeRecentWinRate(trades),
+      equity: computeEquityCurve(trades),
     },
   };
 

@@ -37,7 +37,14 @@
     "compareTitle": "Comparer à moi",
     "compareLoading": "Chargement de vos données…",
     "compareError": "Impossible de charger vos données.",
-    "compareYou": "Toi ({address})"
+    "compareYou": "Toi ({address})",
+    "compareWinRate": "Win Rate",
+    "compareTotalPnl": "PnL",
+    "compareTrades": "Trades",
+    "compareProfitFactor": "Profit Factor",
+    "compareRR": "RR réalisé",
+    "compareLongWR": "WR long",
+    "compareShortWR": "WR short"
   },
   "Cards": {
     "StatGrid": {
@@ -165,6 +172,11 @@
       "insightPayerNoPct": "Tu as payé {amount} de frais de funding.",
       "insightReceiver": "Tu as reçu {amount} de funding net (tu portes des positions shorts prolongées).",
       "insightNeutral": "Funding net nul sur la période."
+    },
+    "Equity": {
+      "title": "Courbe de capital",
+      "notEnough": "Pas assez de trades.",
+      "maxDrawdown": "Drawdown max :"
     },
     "BuyHold": {
       "title": "Buy & Hold vs Trading actif",

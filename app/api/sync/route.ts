@@ -20,6 +20,7 @@ import { computeDirectionWinRate } from "@/lib/insights/direction";
 import { computeRRInsight } from "@/lib/insights/rr";
 import { computeTPSLInsight } from "@/lib/insights/tpsl";
 import { computeRecentWinRate } from "@/lib/insights/recentwr";
+import { computeEquityCurve } from "@/lib/insights/equity";
 import {
   getCachedSync,
   setCachedSync,
@@ -184,6 +185,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         rr: computeRRInsight(trades),
         tpsl: computeTPSLInsight(trades),
         recentWinRate: computeRecentWinRate(trades),
+        equity: computeEquityCurve(trades),
       },
     };
 

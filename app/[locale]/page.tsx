@@ -20,6 +20,7 @@ import DirectionCard from "@/components/dashboard/DirectionCard";
 import RRCard from "@/components/dashboard/RRCard";
 import TPSLCard from "@/components/dashboard/TPSLCard";
 import RecentWRCard from "@/components/dashboard/RecentWRCard";
+import EquityChart from "@/components/dashboard/EquityChart";
 
 export default function Home() {
   const t = useTranslations("HomePage");
@@ -166,6 +167,9 @@ export default function Home() {
 
             {/* Stat cards */}
             <StatGrid stats={data.insights.general} />
+
+            {/* Equity curve */}
+            <EquityChart insight={data.insights.equity} />
 
             {/* Revenge + Streaks + Hourly */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
