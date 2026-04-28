@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import type { SyncData } from "./api-types";
+import { SCHEMA_VERSION } from "./api-types";
 
 const CACHE_TTL_MINUTES = 5;
 const RATE_LIMIT_MAX = 20;       // requests
@@ -28,7 +29,9 @@ export async function getCachedSync(
     .maybeSingle();
 
   if (error || !data) return null;
-  return data.response as SyncData;
+  const response = data.response as SyncData;
+  if (response.schemaVersion !== SCHEMA_VERSION) return null;
+  return response;
 }
 
 export async function setCachedSync(

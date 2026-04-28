@@ -8,6 +8,11 @@ import StatGrid from "@/components/dashboard/StatGrid";
 import RevengeCard from "@/components/dashboard/RevengeCard";
 import HourlyGrid from "@/components/dashboard/HourlyGrid";
 import BuyHoldTable from "@/components/dashboard/BuyHoldTable";
+import StreakCard from "@/components/dashboard/StreakCard";
+import LeverageCard from "@/components/dashboard/LeverageCard";
+import WeekdayCard from "@/components/dashboard/WeekdayCard";
+import HoldTimeCard from "@/components/dashboard/HoldTimeCard";
+import FundingCard from "@/components/dashboard/FundingCard";
 
 const DAYS_OPTIONS = [
   { label: "7 days", value: 7 },
@@ -128,16 +133,29 @@ export default function Home() {
             {/* Stat cards */}
             <StatGrid stats={data.insights.general} />
 
-            {/* Revenge + Hourly */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Revenge + Streaks + Hourly */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <RevengeCard insight={data.insights.revengeTrades} />
+              <StreakCard insight={data.insights.streaks} />
               <HourlyGrid insight={data.insights.hourlyPerformance} />
             </div>
 
-            {/* Buy & hold */}
-            {data.insights.buyHold.byCoin.length > 0 && (
-              <BuyHoldTable insight={data.insights.buyHold} />
-            )}
+            {/* Leverage + Weekday + Hold time */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <LeverageCard insight={data.insights.leverage} />
+              <WeekdayCard insight={data.insights.weekday} />
+              <HoldTimeCard insight={data.insights.holdTime} />
+            </div>
+
+            {/* Funding + Buy & hold */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <FundingCard insight={data.insights.funding} />
+              {data.insights.buyHold.byCoin.length > 0 && (
+                <div className="lg:col-span-2">
+                  <BuyHoldTable insight={data.insights.buyHold} />
+                </div>
+              )}
+            </div>
 
             {data.tradeCount === 0 && (
               <p className="text-sm text-slate-500 text-center py-8">

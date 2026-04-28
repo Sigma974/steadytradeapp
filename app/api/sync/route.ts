@@ -11,6 +11,11 @@ import {
   computeHourlyPerformance,
   computeBuyHoldComparison,
 } from "@/lib/insights";
+import { detectStreaks } from "@/lib/insights/streaks";
+import { computeLeverageEffect } from "@/lib/insights/leverage";
+import { computeWeekdayPerformance } from "@/lib/insights/weekday";
+import { computeHoldTimeEffect } from "@/lib/insights/holdtime";
+import { fetchUserFunding, computeFundingInsight } from "@/lib/insights/funding";
 import {
   getCachedSync,
   setCachedSync,
@@ -19,6 +24,7 @@ import {
   pruneRateLimitLog,
 } from "@/lib/db-cache";
 import type { SyncData, SerializedRevengeInsight } from "@/lib/api-types";
+import { SCHEMA_VERSION } from "@/lib/api-types";
 
 interface SyncRequest {
   address: string;
@@ -136,7 +142,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const end = endTime ? new Date(endTime) : undefined;
 
   try {
-    const fills = await fetchUserFills(address, start, end);
+    const [fills, fundingPayments] = await Promise.all([
+      fetchUserFills(address, start, end),
+      fetchUserFunding(address, start, end),
+    ]);
     const trades = reconstructTrades(fills);
     const revenge = detectRevengeTrades(trades, revengeWindowSeconds);
 
@@ -150,6 +159,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     };
 
     const response: SyncData = {
+      schemaVersion: SCHEMA_VERSION,
       address,
       fills: fills.map(serializeFill),
       trades: trades.map(serializeTrade),
@@ -161,6 +171,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         revengeTrades: serializedRevenge,
         hourlyPerformance: computeHourlyPerformance(trades),
         buyHold: computeBuyHoldComparison(trades),
+        streaks: detectStreaks(trades),
+        leverage: computeLeverageEffect(trades),
+        weekday: computeWeekdayPerformance(trades),
+        holdTime: computeHoldTimeEffect(trades),
+        funding: computeFundingInsight(fundingPayments, trades),
       },
     };
 
