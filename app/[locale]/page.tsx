@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent } from "react";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import type { SyncData } from "@/lib/api-types";
 import StatGrid from "@/components/dashboard/StatGrid";
 import RevengeCard from "@/components/dashboard/RevengeCard";
@@ -19,13 +21,16 @@ import RRCard from "@/components/dashboard/RRCard";
 import TPSLCard from "@/components/dashboard/TPSLCard";
 import RecentWRCard from "@/components/dashboard/RecentWRCard";
 
-const DAYS_OPTIONS = [
-  { label: "7 days", value: 7 },
-  { label: "30 days", value: 30 },
-  { label: "90 days", value: 90 },
-];
-
 export default function Home() {
+  const t = useTranslations("HomePage");
+  const locale = useLocale();
+
+  const DAYS_OPTIONS = [
+    { label: t("form.days7"), value: 7 },
+    { label: t("form.days30"), value: 30 },
+    { label: t("form.days90"), value: 90 },
+  ];
+
   const [address, setAddress] = useState("");
   const [daysBack, setDaysBack] = useState(30);
   const [loading, setLoading] = useState(false);
@@ -49,7 +54,7 @@ export default function Home() {
       const json = await res.json();
 
       if (!res.ok) {
-        setError(json.error ?? "An error occurred.");
+        setError(json.error ?? t("errors.generic"));
         return;
       }
 
@@ -59,19 +64,25 @@ export default function Home() {
       setLastAddress(trimmed);
       try { localStorage.setItem("steady_my_address", trimmed); } catch {}
     } catch {
-      setError("Network error — could not reach the server.");
+      setError(t("errors.network"));
     } finally {
       setLoading(false);
     }
   }
 
+  const traderProfileHref =
+    locale === "fr" ? `/fr/trader/${lastAddress}` : `/trader/${lastAddress}`;
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       {/* Header */}
       <header className="border-b border-slate-800 px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center gap-3">
-          <span className="text-lg font-bold tracking-tight text-slate-100">Steady</span>
-          <span className="text-xs text-slate-500 hidden sm:inline">Hyperliquid analytics</span>
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="text-lg font-bold tracking-tight text-slate-100">Steady</span>
+            <span className="text-xs text-slate-500 hidden sm:inline">{t("tagline")}</span>
+          </div>
+          <LanguageSwitcher />
         </div>
       </header>
 
@@ -81,7 +92,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-2">
             <Input
               className="font-mono bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-600 flex-1"
-              placeholder="0x... Hyperliquid address"
+              placeholder={t("form.placeholder")}
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               spellCheck={false}
@@ -103,7 +114,7 @@ export default function Home() {
               disabled={loading || !address.trim()}
               className="bg-slate-100 text-slate-950 hover:bg-slate-200 font-semibold px-6"
             >
-              {loading ? "Loading…" : "Analyze"}
+              {loading ? t("form.analyzing") : t("form.analyze")}
             </Button>
           </div>
 
@@ -136,15 +147,18 @@ export default function Home() {
               <span className="font-mono truncate">{data.address}</span>
               <div className="flex items-center gap-3">
                 <span>
-                  {data.tradeCount} trades · {data.fillCount} fills · fetched{" "}
-                  {new Date(data.fetchedAt).toLocaleTimeString()}
+                  {t("meta.tradesInfo", {
+                    trades: data.tradeCount,
+                    fills: data.fillCount,
+                    time: new Date(data.fetchedAt).toLocaleTimeString(),
+                  })}
                 </span>
                 {lastAddress && (
                   <Link
-                    href={`/trader/${lastAddress}`}
+                    href={traderProfileHref}
                     className="text-xs px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors whitespace-nowrap"
                   >
-                    View public profile ↗
+                    {t("meta.viewProfile")}
                   </Link>
                 )}
               </div>
@@ -167,7 +181,7 @@ export default function Home() {
               <HoldTimeCard insight={data.insights.holdTime} />
             </div>
 
-            {/* Direction WR + RR + TP/SL + Funding + Buy & hold */}
+            {/* Direction WR + RR + TP/SL + RecentWR + Funding + Buy & hold */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <DirectionCard insight={data.insights.directionWinRate} />
               <RRCard insight={data.insights.rr} />
@@ -183,7 +197,7 @@ export default function Home() {
 
             {data.tradeCount === 0 && (
               <p className="text-sm text-slate-500 text-center py-8">
-                No closed trades found for this address in the selected period.
+                {t("noTrades")}
               </p>
             )}
           </div>
@@ -192,12 +206,8 @@ export default function Home() {
         {/* Empty state */}
         {!data && !loading && (
           <div className="text-center py-24 space-y-2">
-            <p className="text-slate-600 text-sm">
-              Enter a Hyperliquid address to analyze trading performance.
-            </p>
-            <p className="text-slate-700 text-xs">
-              Read-only — no wallet connection required.
-            </p>
+            <p className="text-slate-600 text-sm">{t("emptyState.hint")}</p>
+            <p className="text-slate-700 text-xs">{t("emptyState.readonly")}</p>
           </div>
         )}
       </main>

@@ -1,0 +1,26 @@
+{
+  "HomePage": {
+    "tagline": "Analytiques Hyperliquid",
+    "form": {
+      "placeholder": "Adresse Hyperliquid 0x...",
+      "days7": "7 jours",
+      "days30": "30 jours",
+      "days90": "90 jours",
+      "analyzing": "Chargement…",
+      "analyze": "Analyser"
+    },
+    "errors": {
+      "generic": "Une erreur s'est produite.",
+      "network": "Erreur réseau — impossible de contacter le serveur."
+    },
+    "meta": {
+      "tradesInfo": "{trades} trades · {fills} fills · récupéré à {time}",
+      "viewProfile": "Voir le profil public ↗"
+    },
+    "emptyState": {
+      "hint": "Entrez une adresse Hyperliquid pour analyser ses performances.",
+      "readonly": "Lecture seule — aucune connexion de wallet requise."
+    },
+    "noTrades": "Aucun trade fermé trouvé pour cette adresse sur la période sélectionnée."
+  }
+}

@@ -1,8 +1,15 @@
+type Props = {
+  params: Promise<{ locale: string }>;
+};
+
 export const metadata = {
   title: "Mentions Légales — Steady",
 };
 
-export default function LegalNoticePage() {
+export default async function LegalNoticePage({ params }: Props) {
+  const { locale } = await params;
+  const privacyHref = locale === "fr" ? "/fr/legal/privacy" : "/legal/privacy";
+
   return (
     <div className="prose prose-invert prose-slate max-w-none">
       <h1 className="text-2xl font-bold text-slate-100 mb-2">Mentions Légales</h1>
@@ -53,7 +60,7 @@ export default function LegalNoticePage() {
         <p>
           Pour toute question relative au traitement de vos données personnelles, veuillez consulter
           notre{" "}
-          <a href="/legal/privacy" className="text-slate-300 hover:text-white underline">
+          <a href={privacyHref} className="text-slate-300 hover:text-white underline">
             Politique de Confidentialité
           </a>
           .

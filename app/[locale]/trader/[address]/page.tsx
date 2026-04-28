@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
 import { getCachedSync } from "@/lib/db-cache";
 import TraderClient from "./TraderClient";
 
 const DAYS_BACK = 90;
 
 type Props = {
-  params: Promise<{ address: string }>;
+  params: Promise<{ locale: string; address: string }>;
 };
 
 function abbrev(addr: string) {
@@ -14,7 +15,6 @@ function abbrev(addr: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { address } = await params;
-
   const cached = await getCachedSync(address, DAYS_BACK);
 
   if (cached && cached.tradeCount > 0) {
@@ -48,7 +48,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function TraderPage({ params }: Props) {
-  const { address } = await params;
+  const { locale, address } = await params;
+  setRequestLocale(locale);
 
   const isValidAddress = /^0x[0-9a-fA-F]{40}$/.test(address);
   if (!isValidAddress) {
@@ -59,7 +60,6 @@ export default async function TraderPage({ params }: Props) {
     );
   }
 
-  // Fast path: return cached data for instant SSR; TraderClient fetches fresh if null
   const initialData = await getCachedSync(address, DAYS_BACK);
 
   return <TraderClient address={address} initialData={initialData} daysBack={DAYS_BACK} />;

@@ -1,0 +1,26 @@
+{
+  "HomePage": {
+    "tagline": "Hyperliquid analytics",
+    "form": {
+      "placeholder": "0x... Hyperliquid address",
+      "days7": "7 days",
+      "days30": "30 days",
+      "days90": "90 days",
+      "analyzing": "Loading…",
+      "analyze": "Analyze"
+    },
+    "errors": {
+      "generic": "An error occurred.",
+      "network": "Network error — could not reach the server."
+    },
+    "meta": {
+      "tradesInfo": "{trades} trades · {fills} fills · fetched {time}",
+      "viewProfile": "View public profile ↗"
+    },
+    "emptyState": {
+      "hint": "Enter a Hyperliquid address to analyze trading performance.",
+      "readonly": "Read-only — no wallet connection required."
+    },
+    "noTrades": "No closed trades found for this address in the selected period."
+  }
+}
