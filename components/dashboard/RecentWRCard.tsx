@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { RecentWinRateInsight } from "@/lib/api-types";
 import { fmtPct, pnlColor } from "@/lib/format";
@@ -29,6 +30,7 @@ function WRBar({ label, rate, count }: { label: string; rate: number; count: num
 }
 
 export default function RecentWRCard({ insight }: Props) {
+  const t = useTranslations("Cards.RecentWR");
   if (!insight) return null;
 
   const {
@@ -42,20 +44,20 @@ export default function RecentWRCard({ insight }: Props) {
       <Card className="bg-slate-900 border-slate-800 h-full">
         <CardHeader className="pb-2 pt-4 px-4">
           <CardTitle className="text-sm font-semibold text-slate-200">
-            Win rate récent
+            {t("title")}
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 pb-4">
-          <p className="text-xs text-slate-500">Pas assez de trades.</p>
+          <p className="text-xs text-slate-500">{t("notEnough")}</p>
         </CardContent>
       </Card>
     );
   }
 
   const trendLabel =
-    trend === "improving" ? "↑ En progression" :
-    trend === "declining" ? "↓ En baisse" :
-    "→ Stable";
+    trend === "improving" ? t("trendImproving") :
+    trend === "declining" ? t("trendDeclining") :
+    t("trendStable");
 
   const trendColor =
     trend === "improving" ? "text-emerald-400" :
@@ -66,14 +68,14 @@ export default function RecentWRCard({ insight }: Props) {
   if (hasEnoughHistory) {
     const diffStr = `${delta >= 0 ? "+" : ""}${fmtPct(delta)}`;
     if (trend === "declining") {
-      insightText = `WR récent (${recentDays}j) : ${fmtPct(recentWinRate)}. Total : ${fmtPct(totalWinRate)}. Tendance baissière (${diffStr}), attention.`;
+      insightText = t("insightDeclining", { days: recentDays, recent: fmtPct(recentWinRate), total: fmtPct(totalWinRate), diff: diffStr });
     } else if (trend === "improving") {
-      insightText = `WR récent (${recentDays}j) : ${fmtPct(recentWinRate)}. Total : ${fmtPct(totalWinRate)}. En progression (${diffStr}).`;
+      insightText = t("insightImproving", { days: recentDays, recent: fmtPct(recentWinRate), total: fmtPct(totalWinRate), diff: diffStr });
     } else {
-      insightText = `Win rate stable sur les ${recentDays} derniers jours.`;
+      insightText = t("insightStable", { days: recentDays });
     }
   } else {
-    insightText = `Toutes les données sont dans la fenêtre de ${recentDays}j — pas assez d'historique pour détecter une tendance.`;
+    insightText = t("insightNoHistory", { days: recentDays });
   }
 
   return (
@@ -81,7 +83,7 @@ export default function RecentWRCard({ insight }: Props) {
       <CardHeader className="pb-2 pt-4 px-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-semibold text-slate-200">
-            Win rate récent
+            {t("title")}
           </CardTitle>
           {hasEnoughHistory && (
             <span className={`text-xs font-semibold ${trendColor}`}>
@@ -92,19 +94,19 @@ export default function RecentWRCard({ insight }: Props) {
       </CardHeader>
       <CardContent className="px-4 pb-4 space-y-3">
         <WRBar
-          label={`${recentDays} derniers jours`}
+          label={t("lastNDays", { n: recentDays })}
           rate={recentWinRate}
           count={recentCount}
         />
         <WRBar
-          label="Total période"
+          label={t("fullPeriod")}
           rate={totalWinRate}
           count={totalCount}
         />
 
         {hasEnoughHistory && (
           <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-800">
-            <span className="text-slate-500">Variation</span>
+            <span className="text-slate-500">{t("change")}</span>
             <span className={`font-mono font-semibold ${pnlColor(delta)}`}>
               {delta >= 0 ? "+" : ""}{fmtPct(delta)}
             </span>

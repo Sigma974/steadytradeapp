@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { WeekdayInsight } from "@/lib/api-types";
 import { DISPLAY_ORDER } from "@/lib/insights/weekday";
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export default function WeekdayCard({ insight }: Props) {
+  const t = useTranslations("Cards.Weekday");
   if (!insight) return null;
   const { byDay, bestDay, worstDay, weekendPctTrades, weekendTotalPnl, totalPnl } = insight;
 
@@ -17,11 +19,11 @@ export default function WeekdayCard({ insight }: Props) {
       <Card className="bg-slate-900 border-slate-800 h-full">
         <CardHeader className="pb-2 pt-4 px-4">
           <CardTitle className="text-sm font-semibold text-slate-200">
-            Jour de la semaine
+            {t("title")}
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 pb-4">
-          <p className="text-xs text-slate-500">Pas assez de données.</p>
+          <p className="text-xs text-slate-500">{t("notEnough")}</p>
         </CardContent>
       </Card>
     );
@@ -29,40 +31,35 @@ export default function WeekdayCard({ insight }: Props) {
 
   const maxAbsPnl = Math.max(...activeDays.map((d) => Math.abs(d.totalPnl)), 1);
 
-  // Weekend insight line
   const weekendPctPnl =
     totalPnl !== 0 ? Math.abs(weekendTotalPnl / totalPnl) : null;
 
   const hasWeekendTrades = weekendPctTrades > 0;
 
-  const insightLine = (() => {
-    if (!bestDay || !worstDay || bestDay.day === worstDay.day) return null;
-    return (
-      <>
-        <span className="text-emerald-400 font-medium">{bestDay.dayName}</span>{" "}
-        <span className="text-emerald-400">{fmtPnl(bestDay.totalPnl)}</span>{" "}
-        ({fmtPct(bestDay.winRate)} WR) ·{" "}
-        <span className="text-red-400 font-medium">{worstDay.dayName}</span>{" "}
-        <span className="text-red-400">{fmtPnl(worstDay.totalPnl)}</span>{" "}
-        ({fmtPct(worstDay.winRate)} WR).
-      </>
-    );
-  })();
+  const insightLine =
+    bestDay && worstDay && bestDay.day !== worstDay.day
+      ? t("insightLine", {
+          bestDay: bestDay.dayName,
+          bestPnl: fmtPnl(bestDay.totalPnl),
+          bestWR: fmtPct(bestDay.winRate),
+          worstDay: worstDay.dayName,
+          worstPnl: fmtPnl(worstDay.totalPnl),
+          worstWR: fmtPct(worstDay.winRate),
+        })
+      : null;
 
   return (
     <Card className="bg-slate-900 border-slate-800 h-full">
       <CardHeader className="pb-2 pt-4 px-4">
         <CardTitle className="text-sm font-semibold text-slate-200">
-          Jour de la semaine
+          {t("title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 pb-4 space-y-4">
-        {/* Insight text */}
         {insightLine && (
           <p className="text-xs text-slate-300 leading-relaxed">{insightLine}</p>
         )}
 
-        {/* Day bars */}
         <div className="space-y-2">
           {DISPLAY_ORDER.map((day) => {
             const slot = byDay[day];
@@ -75,7 +72,6 @@ export default function WeekdayCard({ insight }: Props) {
 
             return (
               <div key={day} className="flex items-center gap-2">
-                {/* Day label */}
                 <span
                   className={`w-16 text-xs shrink-0 ${
                     isEmpty
@@ -90,7 +86,6 @@ export default function WeekdayCard({ insight }: Props) {
                   {slot.dayName.slice(0, 3)}
                 </span>
 
-                {/* Bar */}
                 <div className="flex-1 h-5 bg-slate-800 rounded overflow-hidden relative">
                   <div
                     className={`h-full rounded transition-all ${
@@ -105,7 +100,6 @@ export default function WeekdayCard({ insight }: Props) {
                   )}
                 </div>
 
-                {/* PnL */}
                 <span
                   className={`w-20 text-right text-xs font-mono shrink-0 ${
                     isEmpty ? "text-slate-700" : pnlColor(slot.totalPnl)
@@ -118,17 +112,13 @@ export default function WeekdayCard({ insight }: Props) {
           })}
         </div>
 
-        {/* Weekend callout */}
         {hasWeekendTrades && (
           <p className="text-xs text-slate-500 border-t border-slate-800 pt-3">
-            Weekend (sam+dim) :{" "}
-            <span className="text-slate-400">
-              {fmtPct(weekendPctTrades)} du volume
-            </span>
+            {t("weekendLine", { pct: fmtPct(weekendPctTrades) })}
             {weekendPctPnl !== null && totalPnl !== 0 && (
               <>
-                {" "}· {fmtPct(weekendPctPnl)} du{" "}
-                {totalPnl > 0 ? "PnL total" : "PnL négatif"} (
+                {" "}· {fmtPct(weekendPctPnl)}{" "}
+                {totalPnl > 0 ? t("ofTotalPnl") : t("ofNegativePnl")} (
                 <span className={pnlColor(weekendTotalPnl)}>
                   {fmtPnl(weekendTotalPnl)}
                 </span>

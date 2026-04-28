@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { RRInsight } from "@/lib/api-types";
 import { fmtPnl, fmtPct, fmtNumber, pnlColor } from "@/lib/format";
@@ -16,6 +17,7 @@ function Row({ label, value, valueClass }: { label: string; value: string; value
 }
 
 export default function RRCard({ insight }: Props) {
+  const t = useTranslations("Cards.RR");
   if (!insight) return null;
 
   const { avgWinnerPnl, avgLoserPnl, realizedRR, requiredRR, winRate, winnerCount, loserCount, isAboveBreakeven } = insight;
@@ -31,10 +33,14 @@ export default function RRCard({ insight }: Props) {
   if (!noData && !missingLosers && !missingWinners) {
     const diff = realizedRR - requiredRR;
     if (isAboveBreakeven) {
-      insightText = `Ton RR de ${fmtNumber(realizedRR)}R couvre ton WR de ${fmtPct(winRate)}. Tu es mathématiquement au-dessus du seuil de rentabilité.`;
+      insightText = t("insightAbove", { rr: fmtNumber(realizedRR), wr: fmtPct(winRate) });
     } else {
-      const neededStr = fmtNumber(requiredRR);
-      insightText = `Pour être rentable à ${fmtPct(winRate)} WR, il te faudrait ${neededStr}R. Tu réalises ${fmtNumber(realizedRR)}R — ${fmtNumber(Math.abs(diff))}R de manque.`;
+      insightText = t("insightBelow", {
+        wr: fmtPct(winRate),
+        needed: fmtNumber(requiredRR),
+        actual: fmtNumber(realizedRR),
+        diff: fmtNumber(Math.abs(diff)),
+      });
     }
   }
 
@@ -42,15 +48,14 @@ export default function RRCard({ insight }: Props) {
     <Card className="bg-slate-900 border-slate-800 h-full">
       <CardHeader className="pb-2 pt-4 px-4">
         <CardTitle className="text-sm font-semibold text-slate-200">
-          Risk / Reward moyen
+          {t("title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 pb-4 space-y-1">
         {noData ? (
-          <p className="text-xs text-slate-500">Pas assez de trades.</p>
+          <p className="text-xs text-slate-500">{t("notEnough")}</p>
         ) : (
           <>
-            {/* Big RR number */}
             <div className="flex items-baseline gap-2 pb-1">
               <span
                 className={`text-3xl font-mono font-bold ${
@@ -63,23 +68,23 @@ export default function RRCard({ insight }: Props) {
               </span>
               {requiredRR > 0 && (
                 <span className="text-xs text-slate-500">
-                  seuil&nbsp;{reqDisplay}
+                  {t("threshold", { req: reqDisplay })}
                 </span>
               )}
             </div>
 
             <Row
-              label={`Gain moyen (${winnerCount} winners)`}
+              label={t("avgWin", { n: winnerCount })}
               value={missingWinners ? "—" : fmtPnl(avgWinnerPnl)}
               valueClass="text-emerald-400"
             />
             <Row
-              label={`Perte moyenne (${loserCount} losers)`}
+              label={t("avgLoss", { n: loserCount })}
               value={missingLosers ? "—" : fmtPnl(-avgLoserPnl)}
               valueClass="text-red-400"
             />
             <Row
-              label="RR requis au WR actuel"
+              label={t("requiredRR")}
               value={reqDisplay}
               valueClass="text-slate-400"
             />

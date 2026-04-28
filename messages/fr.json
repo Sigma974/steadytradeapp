@@ -22,5 +22,163 @@
       "readonly": "Lecture seule — aucune connexion de wallet requise."
     },
     "noTrades": "Aucun trade fermé trouvé pour cette adresse sur la période sélectionnée."
+  },
+  "TraderPage": {
+    "fetchingHistory": "Récupération de l'historique",
+    "lastNDays": "Derniers {n} jours",
+    "tradesInfo": "{trades} trades · {fills} fills · récupéré à {time}",
+    "copyAddress": "Copier l'adresse",
+    "copied": "Copié !",
+    "viewOnHL": "Voir sur Hyperliquid ↗",
+    "shareOnX": "Partager sur X",
+    "compareToMe": "Comparer à moi",
+    "noTrades": "Aucun trade trouvé pour cette adresse dans les {n} derniers jours.",
+    "noTradesSub": "L'adresse est peut-être inactive ou n'a que des positions ouvertes.",
+    "compareTitle": "Comparer à moi",
+    "compareLoading": "Chargement de vos données…",
+    "compareError": "Impossible de charger vos données.",
+    "compareYou": "Toi ({address})"
+  },
+  "Cards": {
+    "StatGrid": {
+      "totalPnl": "Total P&L",
+      "totalPnlSub": "moy. {avg} / trade",
+      "winRate": "Win Rate",
+      "winRateSub": "{winners}G / {losers}P",
+      "profitFactor": "Profit Factor",
+      "profitFactorSub": "gains bruts / pertes brutes",
+      "totalTrades": "Trades au total",
+      "totalTradesSub": "moy. {duration} / trade",
+      "feesPaid": "Frais payés",
+      "feesPaidSub": "{pct} du brut",
+      "avgDuration": "Durée moyenne",
+      "avgDurationSub": "G: {winner} · P: {loser}"
+    },
+    "Revenge": {
+      "title": "Revenge Trades",
+      "ofTradesOpenedWithin": "des trades ouverts dans les",
+      "ofALoss": "après une perte",
+      "revengeLabel": "Revenge trades",
+      "normalLabel": "Trades normaux",
+      "avgGap": "Délai moyen après une perte : {duration}",
+      "recentLabel": "Récents",
+      "afterLoss": "{duration} après une perte",
+      "noRevenge": "Aucun revenge trade détecté."
+    },
+    "Streak": {
+      "title": "Séries de trades",
+      "losses": "pertes",
+      "wins": "gains",
+      "consecutive": "consécutifs",
+      "currentStreak": "série en cours",
+      "onLossStreak": "Tu es sur une série de {n} trades perdants.",
+      "onWinStreak": "Tu es sur une série de {n} gains consécutifs.",
+      "postStreakWR": "Win rate sur le trade suivant ces séries :",
+      "vsBaseline": "(vs {baseline} de référence)",
+      "afterStreak": "Après une série de 3+",
+      "overallWR": "Win rate général",
+      "longestWin": "Plus longue série de gains",
+      "longestLoss": "Plus longue série de pertes",
+      "tradesUnit": "trades",
+      "noStreakYet": "Pas encore de série de 3+ trades détectée."
+    },
+    "Hourly": {
+      "title": "Performance par heure (UTC)",
+      "bestWorstHeader": "Meilleure : {bestH}h · Pire : {worstH}h",
+      "profitable": "profitable",
+      "losing": "perdant",
+      "bestWorstLine": "Meilleure : {best} · Pire : {worst}",
+      "noTradesSlot": "aucun trade",
+      "noTradesPeriod": "Aucun trade clôturé sur la période."
+    },
+    "Direction": {
+      "title": "Win rate par direction",
+      "noData": "pas de données",
+      "notEnough": "Pas assez de trades.",
+      "insightSignificant": "Tu performe nettement mieux en {direction} (+{diff}% WR d'écart). Considère de réduire tes trades en {other}.",
+      "insightBetter": "Meilleur win rate en {direction} ({betterWR} vs {worseWR}).",
+      "insightSimilar": "Pas de différence marquante entre tes longs et tes shorts."
+    },
+    "RR": {
+      "title": "Risk / Reward moyen",
+      "threshold": "seuil {req}",
+      "avgWin": "Gain moyen ({n} winners)",
+      "avgLoss": "Perte moyenne ({n} losers)",
+      "requiredRR": "RR requis au WR actuel",
+      "notEnough": "Pas assez de trades.",
+      "insightAbove": "Ton RR de {rr}R couvre ton WR de {wr}. Tu es mathématiquement au-dessus du seuil de rentabilité.",
+      "insightBelow": "Pour être rentable à {wr} WR, il te faudrait {needed}R. Tu réalises {actual}R — {diff}R de manque."
+    },
+    "TPSL": {
+      "title": "TP / SL implicites",
+      "avgTp": "TP moyen",
+      "avgSl": "SL moyen",
+      "winnersLabel": "winners",
+      "losersLabel": "losers",
+      "notEnough": "Pas assez de trades.",
+      "insightGood": "Tu laisses courir tes winners ({winners}%) plus loin que tes losers ({losers}%). Bonne discipline de sortie.",
+      "insightInverted": "Tu coupes tes losers ({losers}%) plus tard que tu prends tes winners ({winners}%). C'est l'inverse de ce qu'il faudrait."
+    },
+    "RecentWR": {
+      "title": "Win rate récent",
+      "notEnough": "Pas assez de trades.",
+      "trendImproving": "↑ En progression",
+      "trendDeclining": "↓ En baisse",
+      "trendStable": "→ Stable",
+      "lastNDays": "{n} derniers jours",
+      "fullPeriod": "Total période",
+      "change": "Variation",
+      "insightDeclining": "WR récent ({days}j) : {recent}. Total : {total}. Tendance baissière ({diff}), attention.",
+      "insightImproving": "WR récent ({days}j) : {recent}. Total : {total}. En progression ({diff}).",
+      "insightStable": "Win rate stable sur les {days} derniers jours.",
+      "insightNoHistory": "Toutes les données sont dans la fenêtre de {days}j — pas assez d'historique pour détecter une tendance."
+    },
+    "Leverage": {
+      "title": "Taille de position",
+      "notEnough": "Pas assez de données.",
+      "insightLine": "Positions {best} : {bestWR} WR, {bestPnl}. Positions {worst} : {worstWR} WR, {worstPnl}.",
+      "footerNote": "Classé par taille de position (notional USD). Le levier n'est pas disponible via l'API Hyperliquid."
+    },
+    "Weekday": {
+      "title": "Jour de la semaine",
+      "notEnough": "Pas assez de données.",
+      "insightLine": "{bestDay} {bestPnl} ({bestWR} WR) · {worstDay} {worstPnl} ({worstWR} WR).",
+      "weekendLine": "Weekend (sam+dim) : {pct} du volume",
+      "ofTotalPnl": "du PnL total",
+      "ofNegativePnl": "du PnL négatif"
+    },
+    "HoldTime": {
+      "title": "Durée de trade",
+      "notEnough": "Pas assez de données.",
+      "insightBest": "Tes trades {best} : {bestPnl} ({bestWR} WR).",
+      "insightWorst": " Tes trades {worst} : {worstPnl} ({worstWR} WR)."
+    },
+    "Funding": {
+      "title": "Frais de funding",
+      "netFunding": "funding net",
+      "payments": "paiements",
+      "paid": "Payé",
+      "received": "Reçu",
+      "byCoin": "Par coin",
+      "insightNoFees": "Aucun frais de funding sur la période.",
+      "insightPayer": "Tu as payé {amount} de frais de funding — représente {pct} de ton PnL net.",
+      "insightPayerNoPct": "Tu as payé {amount} de frais de funding.",
+      "insightReceiver": "Tu as reçu {amount} de funding net (tu portes des positions shorts prolongées).",
+      "insightNeutral": "Funding net nul sur la période."
+    },
+    "BuyHold": {
+      "title": "Buy & Hold vs Trading actif",
+      "outperformed": "▲ surperformé de {amount}",
+      "underperformed": "▼ sous-performé de {amount}",
+      "tradingPnl": "PnL trading actif",
+      "buyHoldPnl": "PnL buy & hold",
+      "difference": "Différence",
+      "colCoin": "Coin",
+      "colTradingPnl": "PnL trading",
+      "colBuyHold": "Buy & Hold",
+      "colDelta": "Delta",
+      "colEntryExit": "Entrée → Sortie",
+      "footerNote": "Buy & hold suppose d'entrer au prix moyen de ton premier trade et de tenir jusqu'à ta dernière sortie, même taille."
+    }
   }
 }

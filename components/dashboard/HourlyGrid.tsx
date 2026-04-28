@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { HourlyPerformanceInsight } from "@/lib/api-types";
 import { fmtPnl, fmtPct } from "@/lib/format";
@@ -21,6 +22,7 @@ function textColor(pnl: number, tradeCount: number): string {
 }
 
 export default function HourlyGrid({ insight }: Props) {
+  const t = useTranslations("Cards.Hourly");
   const active = insight.byHour.filter((s) => s.tradeCount > 0);
   const maxAbs = active.length
     ? Math.max(...active.map((s) => Math.abs(s.totalPnl)))
@@ -30,14 +32,13 @@ export default function HourlyGrid({ insight }: Props) {
     <Card className="bg-slate-900 border-slate-800 h-full">
       <CardHeader className="pb-2 pt-4 px-4">
         <CardTitle className="text-sm font-semibold text-slate-200 flex items-center justify-between">
-          Performance by Hour (UTC)
+          {t("title")}
           <span className="text-xs font-normal text-slate-500">
-            {insight.bestHour && `Best: ${insight.bestHour.hour}h · Worst: ${insight.worstHour?.hour}h`}
+            {insight.bestHour && insight.worstHour && t("bestWorstHeader", { bestH: insight.bestHour.hour, worstH: insight.worstHour.hour })}
           </span>
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 pb-4">
-        {/* 24-cell grid — 8 cols × 3 rows */}
         <div className="grid grid-cols-8 gap-1">
           {insight.byHour.map((slot) => (
             <div
@@ -47,7 +48,7 @@ export default function HourlyGrid({ insight }: Props) {
               title={
                 slot.tradeCount > 0
                   ? `${slot.hour}:00 UTC — ${slot.tradeCount} trades · ${fmtPnl(slot.totalPnl)} · ${fmtPct(slot.winRate)} WR`
-                  : `${slot.hour}:00 UTC — no trades`
+                  : `${slot.hour}:00 UTC — ${t("noTradesSlot")}`
               }
             >
               <span className="text-[10px] text-slate-500 leading-none">{slot.hour}h</span>
@@ -65,29 +66,26 @@ export default function HourlyGrid({ insight }: Props) {
           ))}
         </div>
 
-        {/* Legend */}
         {active.length > 0 && (
           <div className="mt-3 flex items-center justify-between text-[10px] text-slate-500">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1">
-                <span className="inline-block w-2 h-2 rounded-sm bg-emerald-700" /> profitable
+                <span className="inline-block w-2 h-2 rounded-sm bg-emerald-700" /> {t("profitable")}
               </span>
               <span className="flex items-center gap-1">
-                <span className="inline-block w-2 h-2 rounded-sm bg-red-800" /> losing
+                <span className="inline-block w-2 h-2 rounded-sm bg-red-800" /> {t("losing")}
               </span>
             </div>
             {insight.bestHour && (
               <span>
-                Best: <span className="text-emerald-400 font-mono">{fmtPnl(insight.bestHour.totalPnl)}</span>
-                {" · "}
-                Worst: <span className="text-red-400 font-mono">{fmtPnl(insight.worstHour!.totalPnl)}</span>
+                {t("bestWorstLine", { best: fmtPnl(insight.bestHour.totalPnl), worst: fmtPnl(insight.worstHour!.totalPnl) })}
               </span>
             )}
           </div>
         )}
 
         {active.length === 0 && (
-          <p className="text-xs text-slate-500 mt-2">No closed trades in this period.</p>
+          <p className="text-xs text-slate-500 mt-2">{t("noTradesPeriod")}</p>
         )}
       </CardContent>
     </Card>

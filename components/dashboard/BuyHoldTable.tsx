@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { BuyHoldInsight } from "@/lib/api-types";
 import { fmtPnl, fmtNumber, pnlColor } from "@/lib/format";
@@ -7,55 +8,55 @@ interface Props {
 }
 
 function DeltaBadge({ delta }: { delta: number }) {
-  const label = delta >= 0 ? "▲ outperformed" : "▼ underperformed";
+  const t = useTranslations("Cards.BuyHold");
   return (
     <span className={`text-xs font-medium ${pnlColor(delta)}`}>
-      {label} by {fmtPnl(Math.abs(delta))}
+      {t(delta >= 0 ? "outperformed" : "underperformed", { amount: fmtPnl(Math.abs(delta)) })}
     </span>
   );
 }
 
 export default function BuyHoldTable({ insight }: Props) {
+  const t = useTranslations("Cards.BuyHold");
+
   return (
     <Card className="bg-slate-900 border-slate-800">
       <CardHeader className="pb-2 pt-4 px-4">
         <CardTitle className="text-sm font-semibold text-slate-200 flex flex-wrap items-center gap-3">
-          Buy &amp; Hold vs Active Trading
+          {t("title")}
           <DeltaBadge delta={insight.delta} />
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 pb-4">
-        {/* Summary row */}
         <div className="grid grid-cols-3 gap-4 mb-4 p-3 bg-slate-950 rounded-lg">
           <div>
-            <p className="text-xs text-slate-500 mb-1">Active trading P&L</p>
+            <p className="text-xs text-slate-500 mb-1">{t("tradingPnl")}</p>
             <p className={`text-xl font-mono font-bold ${pnlColor(insight.totalTradingPnl)}`}>
               {fmtPnl(insight.totalTradingPnl)}
             </p>
           </div>
           <div>
-            <p className="text-xs text-slate-500 mb-1">Buy &amp; hold P&L</p>
+            <p className="text-xs text-slate-500 mb-1">{t("buyHoldPnl")}</p>
             <p className={`text-xl font-mono font-bold ${pnlColor(insight.totalBuyHoldPnl)}`}>
               {fmtPnl(insight.totalBuyHoldPnl)}
             </p>
           </div>
           <div>
-            <p className="text-xs text-slate-500 mb-1">Difference</p>
+            <p className="text-xs text-slate-500 mb-1">{t("difference")}</p>
             <p className={`text-xl font-mono font-bold ${pnlColor(insight.delta)}`}>
               {fmtPnl(insight.delta)}
             </p>
           </div>
         </div>
 
-        {/* Per-coin breakdown */}
         <table className="w-full text-xs">
           <thead>
             <tr className="text-slate-500 border-b border-slate-800">
-              <th className="text-left pb-2 font-medium">Coin</th>
-              <th className="text-right pb-2 font-medium">Trading P&L</th>
-              <th className="text-right pb-2 font-medium">Buy &amp; Hold</th>
-              <th className="text-right pb-2 font-medium">Delta</th>
-              <th className="text-right pb-2 font-medium hidden sm:table-cell">Entry → Exit</th>
+              <th className="text-left pb-2 font-medium">{t("colCoin")}</th>
+              <th className="text-right pb-2 font-medium">{t("colTradingPnl")}</th>
+              <th className="text-right pb-2 font-medium">{t("colBuyHold")}</th>
+              <th className="text-right pb-2 font-medium">{t("colDelta")}</th>
+              <th className="text-right pb-2 font-medium hidden sm:table-cell">{t("colEntryExit")}</th>
             </tr>
           </thead>
           <tbody>
@@ -80,7 +81,7 @@ export default function BuyHoldTable({ insight }: Props) {
         </table>
 
         <p className="text-[10px] text-slate-600 mt-3">
-          Buy &amp; hold assumes entering at your first trade's avg entry price and holding through your last exit, same size.
+          {t("footerNote")}
         </p>
       </CardContent>
     </Card>

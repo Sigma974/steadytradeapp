@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { DirectionWinRateInsight } from "@/lib/api-types";
 import { fmtPct, fmtPnl, pnlColor } from "@/lib/format";
@@ -10,10 +11,12 @@ function DirectionRow({
   label,
   stat,
   highlight,
+  noDataLabel,
 }: {
   label: string;
   stat: { trades: number; winners: number; winRate: number; totalPnl: number };
   highlight: boolean;
+  noDataLabel: string;
 }) {
   const hasData = stat.trades > 0;
   return (
@@ -37,7 +40,7 @@ function DirectionRow({
             {fmtPct(stat.winRate)}
           </span>
         ) : (
-          <span className="text-xs text-slate-600">no data</span>
+          <span className="text-xs text-slate-600">{noDataLabel}</span>
         )}
       </div>
 
@@ -64,6 +67,7 @@ function DirectionRow({
 }
 
 export default function DirectionCard({ insight }: Props) {
+  const t = useTranslations("Cards.Direction");
   if (!insight) return null;
   const { long, short, delta, dominantDirection, significantDiff } = insight;
 
@@ -75,35 +79,45 @@ export default function DirectionCard({ insight }: Props) {
     const worse = dominantDirection === "long" ? short : long;
     const diffPct = (Math.abs(delta) * 100).toFixed(0);
     if (worse.trades >= 5) {
-      insightText = `Tu performe nettement mieux en ${dominantDirection} (+${diffPct}% WR d'écart). Considère de réduire tes trades en ${dominantDirection === "long" ? "short" : "long"}.`;
+      insightText = t("insightSignificant", {
+        direction: dominantDirection,
+        diff: diffPct,
+        other: dominantDirection === "long" ? "short" : "long",
+      });
     } else {
-      insightText = `Meilleur win rate en ${dominantDirection} (${fmtPct(better.winRate)} vs ${fmtPct(worse.winRate)}).`;
+      insightText = t("insightBetter", {
+        direction: dominantDirection,
+        betterWR: fmtPct(better.winRate),
+        worseWR: fmtPct(worse.winRate),
+      });
     }
   } else if (long.trades >= 5 && short.trades >= 5) {
-    insightText = "Pas de différence marquante entre tes longs et tes shorts.";
+    insightText = t("insightSimilar");
   }
 
   return (
     <Card className="bg-slate-900 border-slate-800 h-full">
       <CardHeader className="pb-2 pt-4 px-4">
         <CardTitle className="text-sm font-semibold text-slate-200">
-          Win rate par direction
+          {t("title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 pb-4 space-y-3">
         {noData ? (
-          <p className="text-xs text-slate-500">Pas assez de trades.</p>
+          <p className="text-xs text-slate-500">{t("notEnough")}</p>
         ) : (
           <>
             <DirectionRow
               label="Long"
               stat={long}
               highlight={dominantDirection === "long"}
+              noDataLabel={t("noData")}
             />
             <DirectionRow
               label="Short"
               stat={short}
               highlight={dominantDirection === "short"}
+              noDataLabel={t("noData")}
             />
             {insightText && (
               <p className="text-xs text-slate-300 leading-relaxed pt-1">

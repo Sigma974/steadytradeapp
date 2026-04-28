@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { SyncData } from "@/lib/api-types";
 import { fmtPnl, fmtPct, pnlColor } from "@/lib/format";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -28,6 +28,7 @@ function abbrev(addr: string) {
 }
 
 function Loader({ address }: { address: string }) {
+  const t = useTranslations("TraderPage");
   const [dot, setDot] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setDot((d) => (d + 1) % 4), 500);
@@ -37,7 +38,7 @@ function Loader({ address }: { address: string }) {
     <div className="flex flex-col items-center justify-center py-32 gap-4">
       <div className="w-8 h-8 border-2 border-slate-600 border-t-slate-300 rounded-full animate-spin" />
       <div className="text-center space-y-1">
-        <p className="text-slate-300 text-sm">Fetching trade history{".".repeat(dot)}</p>
+        <p className="text-slate-300 text-sm">{t("fetchingHistory")}{".".repeat(dot)}</p>
         <p className="text-slate-600 text-xs font-mono">{abbrev(address)}</p>
       </div>
     </div>
@@ -45,41 +46,42 @@ function Loader({ address }: { address: string }) {
 }
 
 function CompareBar({ trader, mine }: { trader: SyncData; mine: SyncData }) {
+  const t = useTranslations("TraderPage");
   const rows: { label: string; a: string; b: string; aClass?: string; bClass?: string }[] = [
     {
-      label: "Win Rate",
+      label: t("compareWinRate"),
       a: fmtPct(trader.insights.general.winRate),
       b: fmtPct(mine.insights.general.winRate),
       aClass: pnlColor(trader.insights.general.winRate - 0.5),
       bClass: pnlColor(mine.insights.general.winRate - 0.5),
     },
     {
-      label: "Total PnL",
+      label: t("compareTotalPnl"),
       a: fmtPnl(trader.insights.general.totalPnl),
       b: fmtPnl(mine.insights.general.totalPnl),
       aClass: pnlColor(trader.insights.general.totalPnl),
       bClass: pnlColor(mine.insights.general.totalPnl),
     },
-    { label: "Trades", a: String(trader.tradeCount), b: String(mine.tradeCount) },
+    { label: t("compareTrades"), a: String(trader.tradeCount), b: String(mine.tradeCount) },
     {
-      label: "Profit Factor",
+      label: t("compareProfitFactor"),
       a: trader.insights.general.profitFactor === Infinity ? "∞" : trader.insights.general.profitFactor.toFixed(2),
       b: mine.insights.general.profitFactor === Infinity ? "∞" : mine.insights.general.profitFactor.toFixed(2),
       aClass: pnlColor(trader.insights.general.profitFactor - 1),
       bClass: pnlColor(mine.insights.general.profitFactor - 1),
     },
     {
-      label: "RR",
+      label: t("compareRR"),
       a: `${trader.insights.rr.realizedRR.toFixed(2)}R`,
       b: `${mine.insights.rr.realizedRR.toFixed(2)}R`,
     },
     {
-      label: "Long WR",
+      label: t("compareLongWR"),
       a: trader.insights.directionWinRate.long.trades > 0 ? fmtPct(trader.insights.directionWinRate.long.winRate) : "—",
       b: mine.insights.directionWinRate.long.trades > 0 ? fmtPct(mine.insights.directionWinRate.long.winRate) : "—",
     },
     {
-      label: "Short WR",
+      label: t("compareShortWR"),
       a: trader.insights.directionWinRate.short.trades > 0 ? fmtPct(trader.insights.directionWinRate.short.winRate) : "—",
       b: mine.insights.directionWinRate.short.trades > 0 ? fmtPct(mine.insights.directionWinRate.short.winRate) : "—",
     },
@@ -90,7 +92,7 @@ function CompareBar({ trader, mine }: { trader: SyncData; mine: SyncData }) {
       <div className="grid grid-cols-3 text-xs text-slate-500 uppercase tracking-wider px-4 py-2 border-b border-slate-800 bg-slate-800/40">
         <span />
         <span className="text-center font-mono text-slate-400">{abbrev(trader.address)}</span>
-        <span className="text-center font-mono text-emerald-400">You ({abbrev(mine.address)})</span>
+        <span className="text-center font-mono text-emerald-400">{t("compareYou", { address: abbrev(mine.address) })}</span>
       </div>
       {rows.map((row) => (
         <div key={row.label} className="grid grid-cols-3 px-4 py-2.5 border-b border-slate-800 last:border-0 text-xs">
@@ -110,6 +112,7 @@ interface Props {
 }
 
 export default function TraderClient({ address, initialData, daysBack }: Props) {
+  const t = useTranslations("TraderPage");
   const locale = useLocale();
   const homeHref = locale === "fr" ? "/fr" : "/";
 
@@ -214,19 +217,19 @@ export default function TraderClient({ address, initialData, daysBack }: Props) 
           </div>
           <div className="flex flex-wrap gap-2">
             <button onClick={handleCopy} className="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700">
-              {copied ? "Copied!" : "Copy address"}
+              {copied ? t("copied") : t("copyAddress")}
             </button>
             <a href={`${HL_EXPLORER}?address=${address}`} target="_blank" rel="noopener noreferrer" className="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700">
-              View on Hyperliquid ↗
+              {t("viewOnHL")}
             </a>
             {data && data.tradeCount > 0 && (
               <a href={buildTweet(data)} target="_blank" rel="noopener noreferrer" className="text-xs px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white transition-colors font-semibold">
-                Share on X
+                {t("shareOnX")}
               </a>
             )}
             {myAddress && data && (
               <button onClick={handleCompare} className="text-xs px-3 py-1.5 rounded-lg bg-emerald-800 hover:bg-emerald-700 text-emerald-100 transition-colors border border-emerald-700 font-semibold">
-                Compare to me
+                {t("compareToMe")}
               </button>
             )}
           </div>
@@ -243,20 +246,20 @@ export default function TraderClient({ address, initialData, daysBack }: Props) 
 
         {data && data.tradeCount === 0 && (
           <div className="text-center py-16 space-y-2">
-            <p className="text-slate-400 text-sm">No trades found for this address in the last {daysBack} days.</p>
-            <p className="text-slate-600 text-xs">The address may be inactive or only have open positions.</p>
+            <p className="text-slate-400 text-sm">{t("noTrades", { n: daysBack })}</p>
+            <p className="text-slate-600 text-xs">{t("noTradesSub")}</p>
           </div>
         )}
 
         {showCompare && data && (
           <div className="space-y-2">
-            <h2 className="text-sm font-semibold text-slate-300">Compare to me</h2>
+            <h2 className="text-sm font-semibold text-slate-300">{t("compareTitle")}</h2>
             {loadingCompare ? (
-              <p className="text-xs text-slate-500 animate-pulse">Loading your data…</p>
+              <p className="text-xs text-slate-500 animate-pulse">{t("compareLoading")}</p>
             ) : myData ? (
               <CompareBar trader={data} mine={myData} />
             ) : (
-              <p className="text-xs text-red-400">Could not load your data.</p>
+              <p className="text-xs text-red-400">{t("compareError")}</p>
             )}
           </div>
         )}
@@ -264,8 +267,8 @@ export default function TraderClient({ address, initialData, daysBack }: Props) 
         {data && data.tradeCount > 0 && (
           <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-              <span>Last {daysBack} days</span>
-              <span>{data.tradeCount} trades · {data.fillCount} fills · fetched {new Date(data.fetchedAt).toLocaleTimeString()}</span>
+              <span>{t("lastNDays", { n: daysBack })}</span>
+              <span>{t("tradesInfo", { trades: data.tradeCount, fills: data.fillCount, time: new Date(data.fetchedAt).toLocaleTimeString() })}</span>
             </div>
 
             <StatGrid stats={data.insights.general} />

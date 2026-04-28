@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { GeneralStats } from "@/lib/api-types";
 import { fmtPnl, fmtPct, fmtDuration, fmtUsd, fmtNumber, pnlColor } from "@/lib/format";
@@ -30,6 +31,8 @@ function Stat({ label, value, sub, valueClass }: {
 }
 
 export default function StatGrid({ stats }: Props) {
+  const t = useTranslations("Cards.StatGrid");
+
   const pfDisplay =
     stats.profitFactor === Infinity
       ? "∞"
@@ -38,38 +41,38 @@ export default function StatGrid({ stats }: Props) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
       <Stat
-        label="Total P&L"
+        label={t("totalPnl")}
         value={fmtPnl(stats.totalPnl)}
-        sub={`avg ${fmtPnl(stats.avgPnl)} / trade`}
+        sub={t("totalPnlSub", { avg: fmtPnl(stats.avgPnl) })}
         valueClass={pnlColor(stats.totalPnl) + " text-2xl font-mono font-semibold"}
       />
       <Stat
-        label="Win Rate"
+        label={t("winRate")}
         value={fmtPct(stats.winRate)}
-        sub={`${stats.winners}W / ${stats.losers}L`}
+        sub={t("winRateSub", { winners: stats.winners, losers: stats.losers })}
         valueClass={pnlColor(stats.winRate - 0.5) + " text-2xl font-mono font-semibold"}
       />
       <Stat
-        label="Profit Factor"
+        label={t("profitFactor")}
         value={pfDisplay}
-        sub="gross wins / gross losses"
+        sub={t("profitFactorSub")}
         valueClass={pnlColor(stats.profitFactor - 1) + " text-2xl font-mono font-semibold"}
       />
       <Stat
-        label="Total Trades"
+        label={t("totalTrades")}
         value={String(stats.totalTrades)}
-        sub={`avg ${fmtDuration(Math.round(stats.avgDurationSeconds))} / trade`}
+        sub={t("totalTradesSub", { duration: fmtDuration(Math.round(stats.avgDurationSeconds)) })}
       />
       <Stat
-        label="Fees Paid"
+        label={t("feesPaid")}
         value={fmtUsd(stats.totalFeesSpent)}
-        sub={`${fmtPct(stats.totalFeesSpent / (Math.abs(stats.totalPnl) + stats.totalFeesSpent || 1))} of gross`}
+        sub={t("feesPaidSub", { pct: fmtPct(stats.totalFeesSpent / (Math.abs(stats.totalPnl) + stats.totalFeesSpent || 1)) })}
         valueClass="text-amber-400 text-2xl font-mono font-semibold"
       />
       <Stat
-        label="Avg Duration"
+        label={t("avgDuration")}
         value={fmtDuration(Math.round(stats.avgDurationSeconds))}
-        sub={`W: ${fmtDuration(Math.round(stats.avgWinnerDurationSeconds))} · L: ${fmtDuration(Math.round(stats.avgLoserDurationSeconds))}`}
+        sub={t("avgDurationSub", { winner: fmtDuration(Math.round(stats.avgWinnerDurationSeconds)), loser: fmtDuration(Math.round(stats.avgLoserDurationSeconds)) })}
       />
     </div>
   );
