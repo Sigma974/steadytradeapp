@@ -208,6 +208,21 @@
       "notEnough": "Not enough trades.",
       "maxDrawdown": "Max drawdown:"
     },
+    "Drawdown": {
+      "title": "Drawdown Analysis",
+      "notEnough": "Not enough data",
+      "noDrawdown": "No drawdown detected — exceptional consistency",
+      "maxDd": "Max Drawdown",
+      "peak": "Peak",
+      "bottom": "Bottom",
+      "recoveryTime": "Recovery time",
+      "notYetRecovered": "Not yet recovered",
+      "days": "{n} days",
+      "insightExcellent": "Excellent risk control",
+      "insightModerate": "Significant — typical pro range",
+      "insightHigh": "High — review your sizing",
+      "insightSevere": "Severe — major risk management issue"
+    },
     "BuyHold": {
       "title": "Buy & Hold vs Active Trading",
       "outperformed": "▲ outperformed by {amount}",

@@ -11,6 +11,11 @@ export interface DrawdownPeriod {
   pct: number;
   peakIdx: number;
   troughIdx: number;
+  peakDate: string;
+  troughDate: string;
+  peakEquity: number;
+  troughEquity: number;
+  recoveryDays: number | null;
 }
 
 export interface EquityInsight {
@@ -30,6 +35,7 @@ export function computeEquityCurve(trades: Trade[]): EquityInsight {
   let cumulative = 0;
   let runningPeak = 0;
   let runningPeakIdx = 0;
+  let runningPeakDate = "";
   let maxDrawdown: DrawdownPeriod | null = null;
 
   for (let i = 0; i < sorted.length; i++) {
@@ -43,6 +49,7 @@ export function computeEquityCurve(trades: Trade[]): EquityInsight {
     if (cumulative > runningPeak) {
       runningPeak = cumulative;
       runningPeakIdx = idx;
+      runningPeakDate = date;
     }
 
     if (runningPeak > 0) {
@@ -53,14 +60,30 @@ export function computeEquityCurve(trades: Trade[]): EquityInsight {
           pct: dd / runningPeak,
           peakIdx: runningPeakIdx,
           troughIdx: idx,
+          peakDate: runningPeakDate,
+          troughDate: date,
+          peakEquity: runningPeak,
+          troughEquity: cumulative,
+          recoveryDays: null,
         };
       }
     }
   }
 
-  return {
-    points,
-    maxDrawdown: maxDrawdown && maxDrawdown.amountUsd > 0.01 ? maxDrawdown : null,
-    finalEquity: cumulative,
-  };
+  if (!maxDrawdown || maxDrawdown.amountUsd <= 0.01) {
+    return { points, maxDrawdown: null, finalEquity: cumulative };
+  }
+
+  // Scan forward from the trough to find the first recovery point (equity >= HWM).
+  // troughIdx is 1-based, so the next point in the 0-based array is at troughIdx.
+  const troughTime = new Date(maxDrawdown.troughDate + "T00:00:00Z").getTime();
+  for (let j = maxDrawdown.troughIdx; j < points.length; j++) {
+    if (points[j].equity >= maxDrawdown.peakEquity) {
+      const recoveryTime = new Date(points[j].date + "T00:00:00Z").getTime();
+      maxDrawdown.recoveryDays = Math.round((recoveryTime - troughTime) / 86_400_000);
+      break;
+    }
+  }
+
+  return { points, maxDrawdown, finalEquity: cumulative };
 }

@@ -208,6 +208,21 @@
       "notEnough": "Pas assez de trades.",
       "maxDrawdown": "Drawdown max :"
     },
+    "Drawdown": {
+      "title": "Analyse du drawdown",
+      "notEnough": "Pas assez de données",
+      "noDrawdown": "Aucun drawdown détecté — cohérence exceptionnelle",
+      "maxDd": "Drawdown maximum",
+      "peak": "Pic",
+      "bottom": "Creux",
+      "recoveryTime": "Temps de récupération",
+      "notYetRecovered": "Pas encore récupéré",
+      "days": "{n} jours",
+      "insightExcellent": "Excellent contrôle du risque",
+      "insightModerate": "Significatif — fourchette pro typique",
+      "insightHigh": "Élevé — revoyez votre sizing",
+      "insightSevere": "Sévère — problème majeur de risk management"
+    },
     "BuyHold": {
       "title": "Buy & Hold vs Trading actif",
       "outperformed": "▲ surperformé de {amount}",

@@ -9,6 +9,7 @@ import {
   CartesianGrid,
   Tooltip,
   ReferenceArea,
+  ReferenceLine,
   ResponsiveContainer,
 } from "recharts";
 import type { EquityInsight } from "@/lib/api-types";
@@ -142,20 +143,29 @@ export default function EquityChart({ insight }: Props) {
               <Tooltip content={<CustomTooltip />} cursor={{ stroke: "#475569", strokeWidth: 1 }} />
 
               {maxDrawdown && (
-                <ReferenceArea
-                  x1={maxDrawdown.peakIdx}
-                  x2={maxDrawdown.troughIdx}
-                  fill="#ef4444"
-                  fillOpacity={0.07}
-                  stroke="#ef4444"
-                  strokeOpacity={0.25}
-                  strokeWidth={1}
-                  label={
-                    maxDrawdown.troughIdx - maxDrawdown.peakIdx >= 4
-                      ? { value: `${fmtPct(maxDrawdown.pct)} DD`, position: "insideTopRight", fill: "#ef4444", fontSize: 9 }
-                      : undefined
-                  }
-                />
+                <>
+                  <ReferenceArea
+                    x1={maxDrawdown.peakIdx}
+                    x2={maxDrawdown.troughIdx}
+                    fill="#ef4444"
+                    fillOpacity={0.07}
+                    stroke="#ef4444"
+                    strokeOpacity={0.25}
+                    strokeWidth={1}
+                    label={
+                      maxDrawdown.troughIdx - maxDrawdown.peakIdx >= 4
+                        ? { value: `Max DD: -${fmtPct(maxDrawdown.pct)}`, position: "insideBottomRight", fill: "#ef4444", fontSize: 9 }
+                        : undefined
+                    }
+                  />
+                  <ReferenceLine
+                    y={maxDrawdown.peakEquity}
+                    stroke="#64748b"
+                    strokeDasharray="4 2"
+                    strokeOpacity={0.5}
+                    strokeWidth={1}
+                  />
+                </>
               )}
 
               <Area

@@ -20,6 +20,7 @@ import RRCard from "@/components/dashboard/RRCard";
 import TPSLCard from "@/components/dashboard/TPSLCard";
 import RecentWRCard from "@/components/dashboard/RecentWRCard";
 import EquityChart from "@/components/dashboard/EquityChart";
+import DrawdownCard from "@/components/dashboard/DrawdownCard";
 
 const HL_EXPLORER = "https://app.hyperliquid.xyz/explorer";
 const MY_ADDRESS_KEY = "steady_my_address";
@@ -279,6 +280,8 @@ export default function TraderClient({ address, initialData, daysBack }: Props) 
             <StatGrid stats={data.insights.general} />
 
             <EquityChart insight={data.insights.equity} />
+
+            <DrawdownCard insight={data.insights.equity} />
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
               <DirectionCard insight={data.insights.directionWinRate} />
