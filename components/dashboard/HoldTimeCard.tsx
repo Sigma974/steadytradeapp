@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { HoldTimeInsight } from "@/lib/api-types";
-import { fmtPct, fmtPnl, pnlColor } from "@/lib/format";
+import { fmtPct, fmtPnl, fmtCompact, pnlColor } from "@/lib/format";
 
 interface Props {
   insight: HoldTimeInsight;
@@ -36,9 +36,9 @@ export default function HoldTimeCard({ insight }: Props) {
     if (onlyOne || !bestBucket || !worstBucket || bestLabel === worstLabel) return null;
     const bestProfit = bestBucket.totalPnl >= 0;
     const worstLoss = worstBucket.totalPnl < 0;
-    let text = t("insightBest", { best: bestBucket.label, bestPnl: fmtPnl(bestBucket.totalPnl), bestWR: fmtPct(bestBucket.winRate) });
+    let text = t("insightBest", { best: bestBucket.label, bestPnl: fmtCompact(bestBucket.totalPnl), bestWR: fmtPct(bestBucket.winRate) });
     if (bestProfit && worstLoss) {
-      text += t("insightWorst", { worst: worstBucket.label, worstPnl: fmtPnl(worstBucket.totalPnl), worstWR: fmtPct(worstBucket.winRate) });
+      text += t("insightWorst", { worst: worstBucket.label, worstPnl: fmtCompact(worstBucket.totalPnl), worstWR: fmtPct(worstBucket.winRate) });
     }
     return text;
   })();
@@ -83,8 +83,8 @@ export default function HoldTimeCard({ insight }: Props) {
                       )}
                     </span>
                   </div>
-                  <span className={`font-mono ml-2 shrink-0 ${pnlColor(bucket.totalPnl)}`}>
-                    {fmtPnl(bucket.totalPnl)}
+                  <span className={`font-mono ml-2 shrink-0 ${pnlColor(bucket.totalPnl)}`} title={fmtPnl(bucket.totalPnl)}>
+                    {fmtCompact(bucket.totalPnl)}
                   </span>
                 </div>
 

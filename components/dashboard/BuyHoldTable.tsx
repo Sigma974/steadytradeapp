@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { BuyHoldInsight } from "@/lib/api-types";
-import { fmtPnl, fmtNumber, pnlColor } from "@/lib/format";
+import { fmtPnl, fmtNumber, fmtCompact, fmtCompactUsd, pnlColor } from "@/lib/format";
 
 interface Props {
   insight: BuyHoldInsight;
@@ -11,7 +11,7 @@ function DeltaBadge({ delta }: { delta: number }) {
   const t = useTranslations("Cards.BuyHold");
   return (
     <span className={`text-xs font-medium ${pnlColor(delta)}`}>
-      {t(delta >= 0 ? "outperformed" : "underperformed", { amount: fmtPnl(Math.abs(delta)) })}
+      {t(delta >= 0 ? "outperformed" : "underperformed", { amount: fmtCompactUsd(Math.abs(delta)) })}
     </span>
   );
 }
@@ -31,20 +31,29 @@ export default function BuyHoldTable({ insight }: Props) {
         <div className="grid grid-cols-3 gap-4 mb-4 p-3 bg-slate-950 rounded-lg">
           <div>
             <p className="text-xs text-slate-500 mb-1">{t("tradingPnl")}</p>
-            <p className={`text-xl font-mono font-bold ${pnlColor(insight.totalTradingPnl)}`}>
-              {fmtPnl(insight.totalTradingPnl)}
+            <p
+              className={`text-xl font-mono font-bold ${pnlColor(insight.totalTradingPnl)}`}
+              title={fmtPnl(insight.totalTradingPnl)}
+            >
+              {fmtCompact(insight.totalTradingPnl)}
             </p>
           </div>
           <div>
             <p className="text-xs text-slate-500 mb-1">{t("buyHoldPnl")}</p>
-            <p className={`text-xl font-mono font-bold ${pnlColor(insight.totalBuyHoldPnl)}`}>
-              {fmtPnl(insight.totalBuyHoldPnl)}
+            <p
+              className={`text-xl font-mono font-bold ${pnlColor(insight.totalBuyHoldPnl)}`}
+              title={fmtPnl(insight.totalBuyHoldPnl)}
+            >
+              {fmtCompact(insight.totalBuyHoldPnl)}
             </p>
           </div>
           <div>
             <p className="text-xs text-slate-500 mb-1">{t("difference")}</p>
-            <p className={`text-xl font-mono font-bold ${pnlColor(insight.delta)}`}>
-              {fmtPnl(insight.delta)}
+            <p
+              className={`text-xl font-mono font-bold ${pnlColor(insight.delta)}`}
+              title={fmtPnl(insight.delta)}
+            >
+              {fmtCompact(insight.delta)}
             </p>
           </div>
         </div>
@@ -63,14 +72,23 @@ export default function BuyHoldTable({ insight }: Props) {
             {insight.byCoin.map((row) => (
               <tr key={row.coin} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
                 <td className="py-2 font-mono text-slate-200 font-medium">{row.coin}</td>
-                <td className={`py-2 text-right font-mono ${pnlColor(row.tradingPnl)}`}>
-                  {fmtPnl(row.tradingPnl)}
+                <td
+                  className={`py-2 text-right font-mono ${pnlColor(row.tradingPnl)}`}
+                  title={fmtPnl(row.tradingPnl)}
+                >
+                  {fmtCompact(row.tradingPnl)}
                 </td>
-                <td className={`py-2 text-right font-mono ${pnlColor(row.buyHoldPnl)}`}>
-                  {fmtPnl(row.buyHoldPnl)}
+                <td
+                  className={`py-2 text-right font-mono ${pnlColor(row.buyHoldPnl)}`}
+                  title={fmtPnl(row.buyHoldPnl)}
+                >
+                  {fmtCompact(row.buyHoldPnl)}
                 </td>
-                <td className={`py-2 text-right font-mono font-semibold ${pnlColor(row.delta)}`}>
-                  {fmtPnl(row.delta)}
+                <td
+                  className={`py-2 text-right font-mono font-semibold ${pnlColor(row.delta)}`}
+                  title={fmtPnl(row.delta)}
+                >
+                  {fmtCompact(row.delta)}
                 </td>
                 <td className="py-2 text-right text-slate-500 hidden sm:table-cell">
                   {fmtNumber(row.firstEntryPx)} → {fmtNumber(row.lastExitPx)}

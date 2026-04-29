@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import type { SyncData, SerializedTrade } from "@/lib/api-types";
-import { fmtPnl, fmtDuration, pnlColor } from "@/lib/format";
+import { fmtPnl, fmtDuration, fmtCompact, fmtCompactUsd, pnlColor } from "@/lib/format";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 type SortKey = keyof SerializedTrade;
@@ -27,11 +27,6 @@ function fmtPrice(px: number): string {
   return `$${px.toFixed(6)}`;
 }
 
-function fmtSize(notional: number): string {
-  if (notional >= 1_000_000) return `$${(notional / 1_000_000).toFixed(2)}M`;
-  if (notional >= 1000) return `$${(notional / 1000).toFixed(1)}k`;
-  return `$${notional.toFixed(0)}`;
-}
 
 function fmtDatetime(iso: string): string {
   const d = new Date(iso);
@@ -312,16 +307,16 @@ export default function TradesClient({ address, initialData, daysBack }: Props) 
                           {fmtPrice(trade.avgExitPx)}
                         </td>
                         {/* Size */}
-                        <td className="px-3 py-2 text-right font-mono text-slate-400 whitespace-nowrap">
-                          {fmtSize(trade.notional)}
+                        <td className="px-3 py-2 text-right font-mono text-slate-400 whitespace-nowrap" title={`$${trade.notional.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}>
+                          {fmtCompactUsd(trade.notional)}
                         </td>
                         {/* PnL */}
-                        <td className={`px-3 py-2 text-right font-mono font-semibold whitespace-nowrap ${pnlColor(trade.pnlNet)}`}>
-                          {fmtPnl(trade.pnlNet)}
+                        <td className={`px-3 py-2 text-right font-mono font-semibold whitespace-nowrap ${pnlColor(trade.pnlNet)}`} title={fmtPnl(trade.pnlNet)}>
+                          {fmtCompact(trade.pnlNet)}
                         </td>
                         {/* Fees */}
-                        <td className="px-3 py-2 text-right font-mono text-slate-500 whitespace-nowrap">
-                          {fmtPnl(-trade.feesTotal)}
+                        <td className="px-3 py-2 text-right font-mono text-slate-500 whitespace-nowrap" title={fmtPnl(-trade.feesTotal)}>
+                          {fmtCompact(-trade.feesTotal)}
                         </td>
                         {/* Fills */}
                         <td className="px-3 py-2 text-right text-slate-500 whitespace-nowrap">
@@ -335,11 +330,11 @@ export default function TradesClient({ address, initialData, daysBack }: Props) 
                         {t("totalRow", { n: filtered.length })}
                       </td>
                       <td colSpan={6} />
-                      <td className={`px-3 py-2.5 text-right font-mono ${pnlColor(totals.pnl)}`}>
-                        {fmtPnl(totals.pnl)}
+                      <td className={`px-3 py-2.5 text-right font-mono ${pnlColor(totals.pnl)}`} title={fmtPnl(totals.pnl)}>
+                        {fmtCompact(totals.pnl)}
                       </td>
-                      <td className="px-3 py-2.5 text-right font-mono text-slate-500">
-                        {fmtPnl(-totals.fees)}
+                      <td className="px-3 py-2.5 text-right font-mono text-slate-500" title={fmtPnl(-totals.fees)}>
+                        {fmtCompact(-totals.fees)}
                       </td>
                       <td />
                     </tr>

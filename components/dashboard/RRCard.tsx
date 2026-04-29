@@ -1,17 +1,17 @@
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { RRInsight } from "@/lib/api-types";
-import { fmtPnl, fmtPct, fmtNumber, pnlColor } from "@/lib/format";
+import { fmtPnl, fmtPct, fmtNumber, fmtCompact, pnlColor } from "@/lib/format";
 
 interface Props {
   insight: RRInsight;
 }
 
-function Row({ label, value, valueClass }: { label: string; value: string; valueClass?: string }) {
+function Row({ label, value, valueClass, exactTitle }: { label: string; value: string; valueClass?: string; exactTitle?: string }) {
   return (
     <div className="flex items-center justify-between py-2 border-t border-slate-800 text-xs">
       <span className="text-slate-400">{label}</span>
-      <span className={`font-mono font-semibold ${valueClass ?? "text-slate-200"}`}>{value}</span>
+      <span className={`font-mono font-semibold ${valueClass ?? "text-slate-200"}`} title={exactTitle}>{value}</span>
     </div>
   );
 }
@@ -75,13 +75,15 @@ export default function RRCard({ insight }: Props) {
 
             <Row
               label={t("avgWin", { n: winnerCount })}
-              value={missingWinners ? "—" : fmtPnl(avgWinnerPnl)}
+              value={missingWinners ? "—" : fmtCompact(avgWinnerPnl)}
               valueClass="text-emerald-400"
+              exactTitle={missingWinners ? undefined : fmtPnl(avgWinnerPnl)}
             />
             <Row
               label={t("avgLoss", { n: loserCount })}
-              value={missingLosers ? "—" : fmtPnl(-avgLoserPnl)}
+              value={missingLosers ? "—" : fmtCompact(-avgLoserPnl)}
               valueClass="text-red-400"
+              exactTitle={missingLosers ? undefined : fmtPnl(-avgLoserPnl)}
             />
             <Row
               label={t("requiredRR")}

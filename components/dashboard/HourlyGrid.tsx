@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { HourlyPerformanceInsight } from "@/lib/api-types";
-import { fmtPnl, fmtPct } from "@/lib/format";
+import { fmtPnl, fmtPct, fmtCompact } from "@/lib/format";
 
 interface Props {
   insight: HourlyPerformanceInsight;
@@ -55,7 +55,7 @@ export default function HourlyGrid({ insight }: Props) {
               {slot.tradeCount > 0 ? (
                 <>
                   <span className={`text-[10px] font-mono font-medium leading-none ${textColor(slot.totalPnl, slot.tradeCount)}`}>
-                    {fmtPnl(slot.totalPnl).replace("+", "").replace("$", "")}
+                    {fmtCompact(slot.totalPnl).replace("+", "").replace("$", "")}
                   </span>
                   <span className="text-[9px] text-slate-500 leading-none">{slot.tradeCount}t</span>
                 </>
@@ -78,7 +78,7 @@ export default function HourlyGrid({ insight }: Props) {
             </div>
             {insight.bestHour && (
               <span>
-                {t("bestWorstLine", { best: fmtPnl(insight.bestHour.totalPnl), worst: fmtPnl(insight.worstHour!.totalPnl) })}
+                {t("bestWorstLine", { best: fmtCompact(insight.bestHour.totalPnl), worst: fmtCompact(insight.worstHour!.totalPnl) })}
               </span>
             )}
           </div>

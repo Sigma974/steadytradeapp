@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { EquityInsight } from "@/lib/api-types";
-import { fmtPnl, fmtPct } from "@/lib/format";
+import { fmtPnl, fmtPct, fmtCompact, fmtCompactUsd, fmtUsd } from "@/lib/format";
 
 interface Props {
   insight: EquityInsight;
@@ -82,19 +82,32 @@ export default function DrawdownCard({ insight }: Props) {
           <span className="text-3xl font-mono font-bold text-red-400">
             -{fmtPct(maxDrawdown.pct)}
           </span>
-          <span className="text-sm font-mono text-red-400/70">
-            -{fmtPnl(maxDrawdown.amountUsd)}
+          <span
+            className="text-sm font-mono text-red-400/70"
+            title={`-${fmtUsd(maxDrawdown.amountUsd)}`}
+          >
+            -{fmtCompactUsd(maxDrawdown.amountUsd)}
           </span>
         </div>
 
         {/* Detail rows */}
         <div>
           <Row label={t("peak")}>
-            <span className="text-slate-300 font-mono">{fmtPnl(maxDrawdown.peakEquity)}</span>
+            <span
+              className="text-slate-300 font-mono"
+              title={fmtPnl(maxDrawdown.peakEquity)}
+            >
+              {fmtCompact(maxDrawdown.peakEquity)}
+            </span>
             <span className="text-slate-500 block">{fmtDate(maxDrawdown.peakDate)}</span>
           </Row>
           <Row label={t("bottom")}>
-            <span className="text-red-400 font-mono">{fmtPnl(maxDrawdown.troughEquity)}</span>
+            <span
+              className="text-red-400 font-mono"
+              title={fmtPnl(maxDrawdown.troughEquity)}
+            >
+              {fmtCompact(maxDrawdown.troughEquity)}
+            </span>
             <span className="text-slate-500 block">{fmtDate(maxDrawdown.troughDate)}</span>
           </Row>
           <Row label={t("recoveryTime")}>

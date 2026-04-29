@@ -1,17 +1,18 @@
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { GeneralStats } from "@/lib/api-types";
-import { fmtPnl, fmtPct, fmtDuration, fmtUsd, fmtNumber, pnlColor } from "@/lib/format";
+import { fmtPnl, fmtPct, fmtDuration, fmtUsd, fmtNumber, fmtCompact, fmtCompactUsd, fmtCompactNum, pnlColor } from "@/lib/format";
 
 interface Props {
   stats: GeneralStats;
 }
 
-function Stat({ label, value, sub, valueClass }: {
+function Stat({ label, value, sub, valueClass, exactTitle }: {
   label: string;
   value: string;
   sub?: string;
   valueClass?: string;
+  exactTitle?: string;
 }) {
   return (
     <Card className="bg-slate-900 border-slate-800">
@@ -21,7 +22,7 @@ function Stat({ label, value, sub, valueClass }: {
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 pb-4">
-        <p className={`text-2xl font-mono font-semibold ${valueClass ?? "text-slate-100"}`}>
+        <p className={`text-2xl font-mono font-semibold ${valueClass ?? "text-slate-100"}`} title={exactTitle}>
           {value}
         </p>
         {sub && <p className="text-xs text-slate-500 mt-1">{sub}</p>}
@@ -42,9 +43,10 @@ export default function StatGrid({ stats }: Props) {
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
       <Stat
         label={t("totalPnl")}
-        value={fmtPnl(stats.totalPnl)}
-        sub={t("totalPnlSub", { avg: fmtPnl(stats.avgPnl) })}
+        value={fmtCompact(stats.totalPnl)}
+        sub={t("totalPnlSub", { avg: fmtCompact(stats.avgPnl) })}
         valueClass={pnlColor(stats.totalPnl) + " text-2xl font-mono font-semibold"}
+        exactTitle={fmtPnl(stats.totalPnl)}
       />
       <Stat
         label={t("winRate")}
@@ -60,14 +62,16 @@ export default function StatGrid({ stats }: Props) {
       />
       <Stat
         label={t("totalTrades")}
-        value={String(stats.totalTrades)}
+        value={fmtCompactNum(stats.totalTrades)}
         sub={t("totalTradesSub", { duration: fmtDuration(Math.round(stats.avgDurationSeconds)) })}
+        exactTitle={String(stats.totalTrades)}
       />
       <Stat
         label={t("feesPaid")}
-        value={fmtUsd(stats.totalFeesSpent)}
+        value={fmtCompactUsd(stats.totalFeesSpent)}
         sub={t("feesPaidSub", { pct: fmtPct(stats.totalFeesSpent / (Math.abs(stats.totalPnl) + stats.totalFeesSpent || 1)) })}
         valueClass="text-amber-400 text-2xl font-mono font-semibold"
+        exactTitle={fmtUsd(stats.totalFeesSpent)}
       />
       <Stat
         label={t("avgDuration")}

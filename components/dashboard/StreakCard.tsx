@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { StreakInsight } from "@/lib/api-types";
-import { fmtPct, fmtPnl, pnlColor } from "@/lib/format";
+import { fmtPct, fmtPnl, fmtCompact, pnlColor } from "@/lib/format";
 
 interface Props {
   insight: StreakInsight;
@@ -102,8 +102,8 @@ export default function StreakCard({ insight }: Props) {
                 <span className="text-emerald-400 font-mono">
                   {longestWinStreak.length} {t("tradesUnit")}
                 </span>
-                <span className={`font-mono ${pnlColor(longestWinStreak.totalPnl)}`}>
-                  {fmtPnl(longestWinStreak.totalPnl)}
+                <span className={`font-mono ${pnlColor(longestWinStreak.totalPnl)}`} title={fmtPnl(longestWinStreak.totalPnl)}>
+                  {fmtCompact(longestWinStreak.totalPnl)}
                 </span>
               </div>
             </div>
@@ -115,8 +115,8 @@ export default function StreakCard({ insight }: Props) {
                 <span className="text-red-400 font-mono">
                   {longestLossStreak.length} {t("tradesUnit")}
                 </span>
-                <span className={`font-mono ${pnlColor(longestLossStreak.totalPnl)}`}>
-                  {fmtPnl(longestLossStreak.totalPnl)}
+                <span className={`font-mono ${pnlColor(longestLossStreak.totalPnl)}`} title={fmtPnl(longestLossStreak.totalPnl)}>
+                  {fmtCompact(longestLossStreak.totalPnl)}
                 </span>
               </div>
             </div>

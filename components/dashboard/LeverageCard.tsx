@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { LeverageInsight } from "@/lib/api-types";
-import { fmtPct, fmtPnl, pnlColor } from "@/lib/format";
+import { fmtPct, fmtPnl, fmtCompact, pnlColor } from "@/lib/format";
 
 interface Props {
   insight: LeverageInsight;
@@ -37,10 +37,10 @@ export default function LeverageCard({ insight }: Props) {
       ? t("insightLine", {
           best: bestBucket.label,
           bestWR: fmtPct(bestBucket.winRate),
-          bestPnl: fmtPnl(bestBucket.totalPnl),
+          bestPnl: fmtCompact(bestBucket.totalPnl),
           worst: worstBucket.label,
           worstWR: fmtPct(worstBucket.winRate),
-          worstPnl: fmtPnl(worstBucket.totalPnl),
+          worstPnl: fmtCompact(worstBucket.totalPnl),
         })
       : null;
 
@@ -82,8 +82,8 @@ export default function LeverageCard({ insight }: Props) {
                       {bucket.count} trades · {fmtPct(bucket.winRate)} WR
                     </span>
                   </div>
-                  <span className={`font-mono ${pnlColor(bucket.totalPnl)}`}>
-                    {fmtPnl(bucket.totalPnl)}
+                  <span className={`font-mono ${pnlColor(bucket.totalPnl)}`} title={fmtPnl(bucket.totalPnl)}>
+                    {fmtCompact(bucket.totalPnl)}
                   </span>
                 </div>
 

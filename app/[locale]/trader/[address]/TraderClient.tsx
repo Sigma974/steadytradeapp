@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import type { SyncData } from "@/lib/api-types";
-import { fmtPnl, fmtPct, pnlColor } from "@/lib/format";
+import { fmtPnl, fmtPct, fmtCompact, fmtCompactNum, pnlColor } from "@/lib/format";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import StatGrid from "@/components/dashboard/StatGrid";
 import RevengeCard from "@/components/dashboard/RevengeCard";
@@ -59,12 +59,12 @@ function CompareBar({ trader, mine }: { trader: SyncData; mine: SyncData }) {
     },
     {
       label: t("compareTotalPnl"),
-      a: fmtPnl(trader.insights.general.totalPnl),
-      b: fmtPnl(mine.insights.general.totalPnl),
+      a: fmtCompact(trader.insights.general.totalPnl),
+      b: fmtCompact(mine.insights.general.totalPnl),
       aClass: pnlColor(trader.insights.general.totalPnl),
       bClass: pnlColor(mine.insights.general.totalPnl),
     },
-    { label: t("compareTrades"), a: String(trader.tradeCount), b: String(mine.tradeCount) },
+    { label: t("compareTrades"), a: fmtCompactNum(trader.tradeCount), b: fmtCompactNum(mine.tradeCount) },
     {
       label: t("compareProfitFactor"),
       a: trader.insights.general.profitFactor === Infinity ? "∞" : trader.insights.general.profitFactor.toFixed(2),
@@ -182,7 +182,7 @@ export default function TraderClient({ address, initialData, daysBack }: Props) 
 
   function buildTweet(d: SyncData) {
     const wr = (d.insights.general.winRate * 100).toFixed(0);
-    const pnl = fmtPnl(d.insights.general.totalPnl);
+    const pnl = fmtCompact(d.insights.general.totalPnl);
     const bestCoin = d.insights.buyHold.byCoin[0]?.coin ?? "";
     const bestDir = d.insights.directionWinRate.dominantDirection ?? "long";
     const url = `https://steadytrade.org/trader/${address}`;
@@ -274,7 +274,7 @@ export default function TraderClient({ address, initialData, daysBack }: Props) 
           <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
               <span>{t("lastNDays", { n: daysBack })}</span>
-              <span>{t("tradesInfo", { trades: data.tradeCount, fills: data.fillCount, time: new Date(data.fetchedAt).toLocaleTimeString() })}</span>
+              <span>{t("tradesInfo", { trades: fmtCompactNum(data.tradeCount), fills: fmtCompactNum(data.fillCount), time: new Date(data.fetchedAt).toLocaleTimeString() })}</span>
             </div>
 
             <StatGrid stats={data.insights.general} />

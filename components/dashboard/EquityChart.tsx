@@ -13,7 +13,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import type { EquityInsight } from "@/lib/api-types";
-import { fmtPnl, fmtPct, pnlColor } from "@/lib/format";
+import { fmtPnl, fmtPct, fmtCompactUsd, pnlColor } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Props {
@@ -23,8 +23,9 @@ interface Props {
 function fmtY(v: number): string {
   const abs = Math.abs(v);
   const sign = v < 0 ? "-" : "";
-  if (abs >= 10000) return `${sign}$${(abs / 1000).toFixed(0)}k`;
-  if (abs >= 1000) return `${sign}$${(abs / 1000).toFixed(1)}k`;
+  if (abs >= 1_000_000_000) return `${sign}$${(abs / 1_000_000_000).toFixed(1)}B`;
+  if (abs >= 1_000_000)     return `${sign}$${(abs / 1_000_000).toFixed(1)}M`;
+  if (abs >= 1_000)         return `${sign}$${(abs / 1_000).toFixed(1)}K`;
   return `${sign}$${abs.toFixed(0)}`;
 }
 
@@ -185,8 +186,11 @@ export default function EquityChart({ insight }: Props) {
         {maxDrawdown && (
           <div className="px-4 pt-2 pb-1 text-xs text-slate-500">
             {t("maxDrawdown")}{" "}
-            <span className="text-red-400 font-mono">
-              -{fmtPnl(maxDrawdown.amountUsd)} ({fmtPct(maxDrawdown.pct)})
+            <span
+              className="text-red-400 font-mono"
+              title={`-${fmtPnl(maxDrawdown.amountUsd)}`}
+            >
+              -{fmtCompactUsd(maxDrawdown.amountUsd)} ({fmtPct(maxDrawdown.pct)})
             </span>
           </div>
         )}

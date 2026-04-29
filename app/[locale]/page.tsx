@@ -21,6 +21,7 @@ import RRCard from "@/components/dashboard/RRCard";
 import TPSLCard from "@/components/dashboard/TPSLCard";
 import RecentWRCard from "@/components/dashboard/RecentWRCard";
 import EquityChart from "@/components/dashboard/EquityChart";
+import { fmtCompactNum } from "@/lib/format";
 
 export default function Home() {
   const t = useTranslations("HomePage");
@@ -151,8 +152,8 @@ export default function Home() {
               <div className="flex items-center gap-3">
                 <span>
                   {t("meta.tradesInfo", {
-                    trades: data.tradeCount,
-                    fills: data.fillCount,
+                    trades: fmtCompactNum(data.tradeCount),
+                    fills: fmtCompactNum(data.fillCount),
                     time: new Date(data.fetchedAt).toLocaleTimeString(),
                   })}
                 </span>

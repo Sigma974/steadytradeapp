@@ -19,6 +19,38 @@ export function fmtUsd(n: number | null | undefined): string {
   });
 }
 
+// Compact signed USD for card/row display. Use fmtPnl for exact tooltip values.
+// Examples: +$1.25K  -$20.82K  +$11.50M  -$1.25B
+export function fmtCompact(n: number | null | undefined): string {
+  if (n == null || !isFinite(n)) return DASH;
+  const sign = n >= 0 ? "+" : "-";
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000_000) return `${sign}$${(abs / 1_000_000_000).toFixed(2)}B`;
+  if (abs >= 1_000_000)     return `${sign}$${(abs / 1_000_000).toFixed(2)}M`;
+  if (abs >= 1_000)         return `${sign}$${(abs / 1_000).toFixed(2)}K`;
+  return `${sign}$${abs.toFixed(2)}`;
+}
+
+// Compact unsigned USD for sizes, fees, drawdown amounts.
+// Examples: $1.25K  $11.50M  $1.25B
+export function fmtCompactUsd(n: number | null | undefined): string {
+  if (n == null || !isFinite(n)) return DASH;
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000_000) return `$${(abs / 1_000_000_000).toFixed(2)}B`;
+  if (abs >= 1_000_000)     return `$${(abs / 1_000_000).toFixed(2)}M`;
+  if (abs >= 1_000)         return `$${(abs / 1_000).toFixed(2)}K`;
+  return `$${abs.toFixed(2)}`;
+}
+
+// Compact integer for trade/fill counts. No abbreviation below 10 000.
+// Examples: 30  9 999  13.6K  1.5M
+export function fmtCompactNum(n: number | null | undefined): string {
+  if (n == null || !isFinite(n)) return DASH;
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 10_000)    return `${(n / 1_000).toFixed(1)}K`;
+  return n.toLocaleString("en-US");
+}
+
 export function fmtPct(n: number | null | undefined, decimals = 1): string {
   if (n == null || !isFinite(n)) return DASH;
   return (n * 100).toFixed(decimals) + "%";

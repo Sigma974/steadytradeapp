@@ -2,7 +2,7 @@ import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { WeekdayInsight } from "@/lib/api-types";
 import { DISPLAY_ORDER } from "@/lib/insights/weekday";
-import { fmtPct, fmtPnl, pnlColor } from "@/lib/format";
+import { fmtPct, fmtPnl, fmtCompact, pnlColor } from "@/lib/format";
 
 interface Props {
   insight: WeekdayInsight;
@@ -40,10 +40,10 @@ export default function WeekdayCard({ insight }: Props) {
     bestDay && worstDay && bestDay.day !== worstDay.day
       ? t("insightLine", {
           bestDay: bestDay.dayName,
-          bestPnl: fmtPnl(bestDay.totalPnl),
+          bestPnl: fmtCompact(bestDay.totalPnl),
           bestWR: fmtPct(bestDay.winRate),
           worstDay: worstDay.dayName,
-          worstPnl: fmtPnl(worstDay.totalPnl),
+          worstPnl: fmtCompact(worstDay.totalPnl),
           worstWR: fmtPct(worstDay.winRate),
         })
       : null;
@@ -105,7 +105,7 @@ export default function WeekdayCard({ insight }: Props) {
                     isEmpty ? "text-slate-700" : pnlColor(slot.totalPnl)
                   }`}
                 >
-                  {isEmpty ? "—" : fmtPnl(slot.totalPnl)}
+                  {isEmpty ? "—" : <span title={fmtPnl(slot.totalPnl)}>{fmtCompact(slot.totalPnl)}</span>}
                 </span>
               </div>
             );
@@ -119,8 +119,8 @@ export default function WeekdayCard({ insight }: Props) {
               <>
                 {" "}· {fmtPct(weekendPctPnl)}{" "}
                 {totalPnl > 0 ? t("ofTotalPnl") : t("ofNegativePnl")} (
-                <span className={pnlColor(weekendTotalPnl)}>
-                  {fmtPnl(weekendTotalPnl)}
+                <span className={pnlColor(weekendTotalPnl)} title={fmtPnl(weekendTotalPnl)}>
+                  {fmtCompact(weekendTotalPnl)}
                 </span>
                 )
               </>

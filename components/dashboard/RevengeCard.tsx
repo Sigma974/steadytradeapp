@@ -2,7 +2,7 @@ import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { SerializedRevengeInsight } from "@/lib/api-types";
-import { fmtPct, fmtDuration, fmtPnl, pnlColor } from "@/lib/format";
+import { fmtPct, fmtDuration, fmtPnl, fmtCompact, pnlColor } from "@/lib/format";
 
 interface Props {
   insight: SerializedRevengeInsight;
@@ -75,8 +75,8 @@ export default function RevengeCard({ insight }: Props) {
                   <span className="text-slate-300 font-mono">{d.trade.coin}</span>
                   <span className="text-slate-500">{t("afterLoss", { duration: fmtDuration(Math.round(d.gapSeconds)) })}</span>
                 </div>
-                <span className={`font-mono ${pnlColor(d.trade.pnlNet)}`}>
-                  {fmtPnl(d.trade.pnlNet)}
+                <span className={`font-mono ${pnlColor(d.trade.pnlNet)}`} title={fmtPnl(d.trade.pnlNet)}>
+                  {fmtCompact(d.trade.pnlNet)}
                 </span>
               </div>
             ))}

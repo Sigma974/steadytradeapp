@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { FundingInsight } from "@/lib/api-types";
-import { fmtPnl, fmtPct, pnlColor } from "@/lib/format";
+import { fmtPnl, fmtPct, fmtCompact, pnlColor } from "@/lib/format";
 
 interface Props {
   insight: FundingInsight;
@@ -21,12 +21,12 @@ export default function FundingCard({ insight }: Props) {
     if (paymentCount === 0) return t("insightNoFees");
     if (isNetPayer) {
       if (fundingVsNetPnl !== null) {
-        return t("insightPayer", { amount: fmtPnl(-totalPaid), pct: fmtPct(Math.abs(fundingVsNetPnl)) });
+        return t("insightPayer", { amount: fmtCompact(-totalPaid), pct: fmtPct(Math.abs(fundingVsNetPnl)) });
       }
-      return t("insightPayerNoPct", { amount: fmtPnl(-totalPaid) });
+      return t("insightPayerNoPct", { amount: fmtCompact(-totalPaid) });
     }
     if (isNetReceiver) {
-      return t("insightReceiver", { amount: fmtPnl(totalReceived) });
+      return t("insightReceiver", { amount: fmtCompact(totalReceived) });
     }
     return t("insightNeutral");
   })();
@@ -70,8 +70,11 @@ export default function FundingCard({ insight }: Props) {
       </CardHeader>
       <CardContent className="px-4 pb-4 space-y-4">
         <div className="flex items-center gap-3">
-          <span className={`text-3xl font-mono font-bold ${pnlColor(totalFunding)}`}>
-            {fmtPnl(totalFunding)}
+          <span
+            className={`text-3xl font-mono font-bold ${pnlColor(totalFunding)}`}
+            title={fmtPnl(totalFunding)}
+          >
+            {fmtCompact(totalFunding)}
           </span>
           <div className="text-xs text-slate-500 leading-tight">
             {t("netFunding")}<br />
@@ -85,11 +88,15 @@ export default function FundingCard({ insight }: Props) {
           <div className="flex gap-4 text-xs">
             <div>
               <span className="text-slate-500">{t("paid")}</span>{" "}
-              <span className="text-red-400 font-mono">{fmtPnl(-totalPaid)}</span>
+              <span className="text-red-400 font-mono" title={fmtPnl(-totalPaid)}>
+                {fmtCompact(-totalPaid)}
+              </span>
             </div>
             <div>
               <span className="text-slate-500">{t("received")}</span>{" "}
-              <span className="text-emerald-400 font-mono">{fmtPnl(totalReceived)}</span>
+              <span className="text-emerald-400 font-mono" title={fmtPnl(totalReceived)}>
+                {fmtCompact(totalReceived)}
+              </span>
             </div>
           </div>
         )}
@@ -103,8 +110,8 @@ export default function FundingCard({ insight }: Props) {
                 <div key={c.coin} className="space-y-1">
                   <div className="flex justify-between text-xs">
                     <span className="text-slate-400 font-mono">{c.coin}</span>
-                    <span className={`font-mono ${pnlColor(c.total)}`}>
-                      {fmtPnl(c.total)}
+                    <span className={`font-mono ${pnlColor(c.total)}`} title={fmtPnl(c.total)}>
+                      {fmtCompact(c.total)}
                     </span>
                   </div>
                   <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">

@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { DirectionWinRateInsight } from "@/lib/api-types";
-import { fmtPct, fmtPnl, pnlColor } from "@/lib/format";
+import { fmtPct, fmtPnl, fmtCompact, pnlColor } from "@/lib/format";
 
 interface Props {
   insight: DirectionWinRateInsight;
@@ -58,7 +58,7 @@ function DirectionRow({
             <span>
               {stat.winners}W&nbsp;/&nbsp;{stat.trades - stat.winners}L&nbsp;·&nbsp;{stat.trades} trades
             </span>
-            <span className={pnlColor(stat.totalPnl)}>{fmtPnl(stat.totalPnl)}</span>
+            <span className={pnlColor(stat.totalPnl)} title={fmtPnl(stat.totalPnl)}>{fmtCompact(stat.totalPnl)}</span>
           </div>
         </>
       )}
