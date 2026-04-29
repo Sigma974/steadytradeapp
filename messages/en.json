@@ -73,7 +73,26 @@
     "compareProfitFactor": "Profit Factor",
     "compareRR": "Realized RR",
     "compareLongWR": "Long WR",
-    "compareShortWR": "Short WR"
+    "compareShortWR": "Short WR",
+    "noTradesCustom": "No trades found for this address in the selected period."
+  },
+  "Period": {
+    "7d": "7 days",
+    "30d": "30 days",
+    "90d": "90 days",
+    "180d": "6 months",
+    "365d": "1 year",
+    "all": "All time",
+    "custom": "Custom",
+    "from": "From",
+    "to": "To",
+    "apply": "Apply",
+    "errorBothDates": "Both dates are required.",
+    "errorEndBeforeStart": "End date must be after start date.",
+    "cached": "Cached",
+    "justNow": "just now",
+    "minutesAgo": "{n} min ago",
+    "refresh": "Refresh"
   },
   "Cards": {
     "StatGrid": {

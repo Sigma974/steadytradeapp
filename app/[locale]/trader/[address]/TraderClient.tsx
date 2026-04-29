@@ -1,11 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import type { SyncData } from "@/lib/api-types";
-import { fmtPnl, fmtPct, fmtCompact, fmtCompactNum, pnlColor } from "@/lib/format";
+import { fmtPct, fmtCompact, fmtCompactNum, pnlColor } from "@/lib/format";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import PeriodSelector from "@/components/PeriodSelector";
+import CacheIndicator from "@/components/CacheIndicator";
+import type { PeriodChange } from "@/lib/periods";
 import StatGrid from "@/components/dashboard/StatGrid";
 import RevengeCard from "@/components/dashboard/RevengeCard";
 import HourlyGrid from "@/components/dashboard/HourlyGrid";
@@ -110,50 +113,106 @@ function CompareBar({ trader, mine }: { trader: SyncData; mine: SyncData }) {
 interface Props {
   address: string;
   initialData: SyncData | null;
-  daysBack: number;
+  daysBack: number | null;
+  initialStart?: number;
+  initialEnd?: number;
 }
 
-export default function TraderClient({ address, initialData, daysBack }: Props) {
+export default function TraderClient({ address, initialData, daysBack: initialDays, initialStart, initialEnd }: Props) {
   const t = useTranslations("TraderPage");
   const locale = useLocale();
   const homeHref = locale === "fr" ? "/fr" : "/";
-  const tradesHref = locale === "fr" ? `/fr/trades/${address}?days=${daysBack}` : `/trades/${address}?days=${daysBack}`;
 
+  const [activeDays, setActiveDays] = useState<number | null>(initialDays);
+  const [activeStart, setActiveStart] = useState<number | undefined>(initialStart);
+  const [activeEnd, setActiveEnd] = useState<number | undefined>(initialEnd);
   const [data, setData] = useState<SyncData | null>(initialData);
   const [error, setError] = useState<string | null>(null);
+  const [fromCache, setFromCache] = useState(false);
+  const [cacheAgeMinutes, setCacheAgeMinutes] = useState(0);
+  const forceRef = useRef(false);
+
   const [copied, setCopied] = useState(false);
   const [showCompare, setShowCompare] = useState(false);
   const [myData, setMyData] = useState<SyncData | null>(null);
   const [myAddress, setMyAddress] = useState<string | null>(null);
   const [loadingCompare, setLoadingCompare] = useState(false);
 
+  const tradesHref = (() => {
+    const base = locale === "fr" ? `/fr/trades/${address}` : `/trades/${address}`;
+    if (activeDays !== null) return `${base}?days=${activeDays}`;
+    if (activeStart && activeEnd) return `${base}?start=${activeStart}&end=${activeEnd}`;
+    return base;
+  })();
+
   useEffect(() => {
     if (data) return;
+    if (activeDays === null && (!activeStart || !activeEnd)) return;
     let cancelled = false;
+    const isForce = forceRef.current;
+    forceRef.current = false;
     (async () => {
       try {
+        const body: Record<string, unknown> = { address };
+        if (activeDays !== null) body.daysBack = activeDays;
+        else { body.startTime = activeStart; body.endTime = activeEnd; }
+        if (isForce) body.force = true;
         const res = await fetch("/api/sync", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ address, daysBack }),
+          body: JSON.stringify(body),
         });
         if (cancelled) return;
         const json = await res.json();
         if (!res.ok) { setError(json.error ?? "Failed to load trader data."); return; }
+        const isCached = res.headers.get("X-Cache") === "HIT";
+        setFromCache(isCached);
+        if (isCached) {
+          setCacheAgeMinutes(Math.floor((Date.now() - new Date((json as SyncData).fetchedAt).getTime()) / 60000));
+        }
         setData(json as SyncData);
       } catch {
         if (!cancelled) setError("Network error — could not reach the server.");
       }
     })();
     return () => { cancelled = true; };
-  }, [address, daysBack, data]);
+  }, [address, activeDays, activeStart, activeEnd, data]);
 
   useEffect(() => {
     try {
       const stored = localStorage.getItem(MY_ADDRESS_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (stored && stored.toLowerCase() !== address.toLowerCase()) setMyAddress(stored);
     } catch {}
   }, [address]);
+
+  function handlePeriodChange(change: PeriodChange) {
+    if (change.daysBack !== undefined) {
+      setActiveDays(change.daysBack);
+      setActiveStart(undefined);
+      setActiveEnd(undefined);
+      window.history.replaceState({}, "", `?days=${change.daysBack}`);
+    } else {
+      setActiveDays(null);
+      const start = change.startTime || undefined;
+      const end = change.endTime || undefined;
+      setActiveStart(start);
+      setActiveEnd(end);
+      if (!start || !end) return; // switched to custom mode, waiting for date input
+      window.history.replaceState({}, "", `?start=${start}&end=${end}`);
+    }
+    setData(null);
+    setError(null);
+    setMyData(null);
+    setShowCompare(false);
+  }
+
+  function handleRefresh() {
+    forceRef.current = true;
+    setFromCache(false);
+    setData(null);
+    setError(null);
+  }
 
   async function handleCompare() {
     if (!myAddress) return;
@@ -161,10 +220,13 @@ export default function TraderClient({ address, initialData, daysBack }: Props) 
     if (myData) return;
     setLoadingCompare(true);
     try {
+      const body: Record<string, unknown> = { address: myAddress };
+      if (activeDays !== null) body.daysBack = activeDays;
+      else { body.startTime = activeStart; body.endTime = activeEnd; }
       const res = await fetch("/api/sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address: myAddress, daysBack }),
+        body: JSON.stringify(body),
       });
       const json = await res.json();
       if (res.ok) setMyData(json as SyncData);
@@ -197,6 +259,7 @@ export default function TraderClient({ address, initialData, daysBack }: Props) 
   }
 
   const short = abbrev(address);
+  const isLoading = !data && !error;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -213,6 +276,7 @@ export default function TraderClient({ address, initialData, daysBack }: Props) 
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
+        {/* Title + action buttons */}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-1">
             <h1 className="text-2xl font-bold font-mono text-slate-100">{short}</h1>
@@ -241,7 +305,32 @@ export default function TraderClient({ address, initialData, daysBack }: Props) 
           </div>
         </div>
 
-        {!data && !error && <Loader address={address} />}
+        {/* Period selector + meta info */}
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <PeriodSelector
+            daysBack={activeDays}
+            startTime={activeStart}
+            endTime={activeEnd}
+            onChange={handlePeriodChange}
+            disabled={isLoading}
+          />
+          {data && (
+            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+              {fromCache && (
+                <CacheIndicator cacheAgeMinutes={cacheAgeMinutes} onRefresh={handleRefresh} />
+              )}
+              <span>
+                {t("tradesInfo", {
+                  trades: fmtCompactNum(data.tradeCount),
+                  fills: fmtCompactNum(data.fillCount),
+                  time: new Date(data.fetchedAt).toLocaleTimeString(),
+                })}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {isLoading && <Loader address={address} />}
 
         {error && (
           <div className="text-center py-16 space-y-2">
@@ -252,7 +341,9 @@ export default function TraderClient({ address, initialData, daysBack }: Props) 
 
         {data && data.tradeCount === 0 && (
           <div className="text-center py-16 space-y-2">
-            <p className="text-slate-400 text-sm">{t("noTrades", { n: daysBack })}</p>
+            <p className="text-slate-400 text-sm">
+              {activeDays !== null ? t("noTrades", { n: activeDays }) : t("noTradesCustom")}
+            </p>
             <p className="text-slate-600 text-xs">{t("noTradesSub")}</p>
           </div>
         )}
@@ -272,11 +363,6 @@ export default function TraderClient({ address, initialData, daysBack }: Props) 
 
         {data && data.tradeCount > 0 && (
           <div className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-              <span>{t("lastNDays", { n: daysBack })}</span>
-              <span>{t("tradesInfo", { trades: fmtCompactNum(data.tradeCount), fills: fmtCompactNum(data.fillCount), time: new Date(data.fetchedAt).toLocaleTimeString() })}</span>
-            </div>
-
             <StatGrid stats={data.insights.general} />
 
             <EquityChart insight={data.insights.equity} />

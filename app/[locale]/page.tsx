@@ -6,7 +6,10 @@ import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import PeriodSelector from "@/components/PeriodSelector";
+import CacheIndicator from "@/components/CacheIndicator";
 import type { SyncData } from "@/lib/api-types";
+import type { PeriodChange } from "@/lib/periods";
 import StatGrid from "@/components/dashboard/StatGrid";
 import RevengeCard from "@/components/dashboard/RevengeCard";
 import HourlyGrid from "@/components/dashboard/HourlyGrid";
@@ -27,44 +30,46 @@ export default function Home() {
   const t = useTranslations("HomePage");
   const locale = useLocale();
 
-  const DAYS_OPTIONS = [
-    { label: t("form.days7"), value: 7 },
-    { label: t("form.days30"), value: 30 },
-    { label: t("form.days90"), value: 90 },
-  ];
-
   const [address, setAddress] = useState("");
-  const [daysBack, setDaysBack] = useState(30);
+  const [activeDays, setActiveDays] = useState<number | null>(30);
+  const [activeStart, setActiveStart] = useState<number | undefined>();
+  const [activeEnd, setActiveEnd] = useState<number | undefined>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<SyncData | null>(null);
+  const [fromCache, setFromCache] = useState(false);
+  const [cacheAgeMinutes, setCacheAgeMinutes] = useState(0);
   const [lastAddress, setLastAddress] = useState("");
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
+  async function fetchData(
+    addr: string,
+    days: number | null,
+    start?: number,
+    end?: number,
+    force?: boolean,
+  ) {
     setError(null);
     setLoading(true);
     setData(null);
-
+    setFromCache(false);
     try {
+      const body: Record<string, unknown> = { address: addr };
+      if (days !== null) body.daysBack = days;
+      else { body.startTime = start; body.endTime = end; }
+      if (force) body.force = true;
       const res = await fetch("/api/sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address: address.trim(), daysBack }),
+        body: JSON.stringify(body),
       });
-
       const json = await res.json();
-
-      if (!res.ok) {
-        setError(json.error ?? t("errors.generic"));
-        return;
+      if (!res.ok) { setError(json.error ?? t("errors.generic")); return; }
+      const isCached = res.headers.get("X-Cache") === "HIT";
+      setFromCache(isCached);
+      if (isCached) {
+        setCacheAgeMinutes(Math.floor((Date.now() - new Date((json as SyncData).fetchedAt).getTime()) / 60000));
       }
-
-      const syncData = json as SyncData;
-      setData(syncData);
-      const trimmed = address.trim();
-      setLastAddress(trimmed);
-      try { localStorage.setItem("steady_my_address", trimmed); } catch {}
+      setData(json as SyncData);
     } catch {
       setError(t("errors.network"));
     } finally {
@@ -72,14 +77,44 @@ export default function Home() {
     }
   }
 
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    const trimmed = address.trim();
+    setLastAddress(trimmed);
+    try { localStorage.setItem("steady_my_address", trimmed); } catch {}
+    await fetchData(trimmed, activeDays, activeStart, activeEnd);
+  }
+
+  function handlePeriodChange(change: PeriodChange) {
+    if (change.daysBack !== undefined) {
+      setActiveDays(change.daysBack);
+      setActiveStart(undefined);
+      setActiveEnd(undefined);
+      if (lastAddress) fetchData(lastAddress, change.daysBack);
+    } else {
+      setActiveDays(null);
+      const start = change.startTime || undefined;
+      const end = change.endTime || undefined;
+      setActiveStart(start);
+      setActiveEnd(end);
+      if (start && end && lastAddress) fetchData(lastAddress, null, start, end);
+    }
+  }
+
+  function handleRefresh() {
+    if (!lastAddress) return;
+    fetchData(lastAddress, activeDays, activeStart, activeEnd, true);
+  }
+
   const traderProfileHref =
     locale === "fr" ? `/fr/trader/${lastAddress}` : `/trader/${lastAddress}`;
   const tradesHref =
-    locale === "fr" ? `/fr/trades/${lastAddress}?days=${daysBack}` : `/trades/${lastAddress}?days=${daysBack}`;
+    activeDays !== null
+      ? (locale === "fr" ? `/fr/trades/${lastAddress}?days=${activeDays}` : `/trades/${lastAddress}?days=${activeDays}`)
+      : (locale === "fr" ? `/fr/trades/${lastAddress}?start=${activeStart}&end=${activeEnd}` : `/trades/${lastAddress}?start=${activeStart}&end=${activeEnd}`);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      {/* Header */}
       <header className="border-b border-slate-800 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -102,17 +137,6 @@ export default function Home() {
               spellCheck={false}
               autoComplete="off"
             />
-            <select
-              className="h-9 rounded-md border border-slate-700 bg-slate-900 text-slate-100 text-sm px-3 cursor-pointer focus:outline-none focus:ring-1 focus:ring-slate-500"
-              value={daysBack}
-              onChange={(e) => setDaysBack(Number(e.target.value))}
-            >
-              {DAYS_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
             <Button
               type="submit"
               disabled={loading || !address.trim()}
@@ -121,7 +145,13 @@ export default function Home() {
               {loading ? t("form.analyzing") : t("form.analyze")}
             </Button>
           </div>
-
+          <PeriodSelector
+            daysBack={activeDays}
+            startTime={activeStart}
+            endTime={activeEnd}
+            onChange={handlePeriodChange}
+            disabled={loading}
+          />
           {error && (
             <p className="text-sm text-red-400 font-mono">{error}</p>
           )}
@@ -146,10 +176,13 @@ export default function Home() {
         {/* Dashboard */}
         {data && !loading && (
           <div className="space-y-4">
-            {/* Meta */}
+            {/* Meta bar */}
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
               <span className="font-mono truncate">{data.address}</span>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                {fromCache && (
+                  <CacheIndicator cacheAgeMinutes={cacheAgeMinutes} onRefresh={handleRefresh} />
+                )}
                 <span>
                   {t("meta.tradesInfo", {
                     trades: fmtCompactNum(data.tradeCount),

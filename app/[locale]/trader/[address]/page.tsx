@@ -3,10 +3,11 @@ import { setRequestLocale } from "next-intl/server";
 import { getCachedSync } from "@/lib/db-cache";
 import TraderClient from "./TraderClient";
 
-const DAYS_BACK = 90;
+const META_DAYS = 90;
 
 type Props = {
   params: Promise<{ locale: string; address: string }>;
+  searchParams: Promise<{ days?: string; start?: string; end?: string }>;
 };
 
 function abbrev(addr: string) {
@@ -15,7 +16,7 @@ function abbrev(addr: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { address } = await params;
-  const cached = await getCachedSync(address, DAYS_BACK);
+  const cached = await getCachedSync(address, META_DAYS);
 
   if (cached && cached.tradeCount > 0) {
     const { tradeCount, insights } = cached;
@@ -47,8 +48,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function TraderPage({ params }: Props) {
+export default async function TraderPage({ params, searchParams }: Props) {
   const { locale, address } = await params;
+  const sp = await searchParams;
   setRequestLocale(locale);
 
   const isValidAddress = /^0x[0-9a-fA-F]{40}$/.test(address);
@@ -60,7 +62,28 @@ export default async function TraderPage({ params }: Props) {
     );
   }
 
-  const initialData = await getCachedSync(address, DAYS_BACK);
+  let initialDays: number | null;
+  let initialStart: number | undefined;
+  let initialEnd: number | undefined;
 
-  return <TraderClient address={address} initialData={initialData} daysBack={DAYS_BACK} />;
+  if (sp.start && sp.end) {
+    initialDays = null;
+    initialStart = parseInt(sp.start, 10) || undefined;
+    initialEnd = parseInt(sp.end, 10) || undefined;
+  } else {
+    const parsed = sp.days ? parseInt(sp.days, 10) : 90;
+    initialDays = isNaN(parsed) || parsed <= 0 ? 90 : parsed;
+  }
+
+  const initialData = initialDays !== null ? await getCachedSync(address, initialDays) : null;
+
+  return (
+    <TraderClient
+      address={address}
+      initialData={initialData}
+      daysBack={initialDays}
+      initialStart={initialStart}
+      initialEnd={initialEnd}
+    />
+  );
 }

@@ -38,6 +38,7 @@ interface SyncRequest {
   startTime?: number;
   endTime?: number;
   revengeWindowSeconds?: number;
+  force?: boolean;
 }
 
 function getClientIp(req: NextRequest): string {
@@ -110,6 +111,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     startTime,
     endTime,
     revengeWindowSeconds = 300,
+    force,
   } = body;
 
   if (
@@ -124,7 +126,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   // Cache hit — return immediately without counting against rate limit
-  if (!startTime && !endTime) {
+  if (!startTime && !endTime && !force) {
     const cached = await getCachedSync(address, daysBack);
     if (cached) {
       return NextResponse.json(cached, {
