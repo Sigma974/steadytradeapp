@@ -14,9 +14,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const OG_IMAGE = "https://steadytrade.org/og-default";
+
 export const metadata: Metadata = {
   title: "Steady — Hyperliquid Analytics",
   description: "Analyze your Hyperliquid trading performance. PnL, win rate, revenge trades, hourly patterns and more — no wallet connection required.",
+  openGraph: {
+    images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: [OG_IMAGE],
+  },
 };
 
 export default function RootLayout({
