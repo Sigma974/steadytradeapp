@@ -24,7 +24,7 @@ export default async function LegalLayout({ children, params }: Props) {
       <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-10">
         {children}
       </main>
-      <Footer />
+      <Footer locale={locale} />
     </div>
   );
 }

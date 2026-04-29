@@ -24,7 +24,9 @@ import RRCard from "@/components/dashboard/RRCard";
 import TPSLCard from "@/components/dashboard/TPSLCard";
 import RecentWRCard from "@/components/dashboard/RecentWRCard";
 import EquityChart from "@/components/dashboard/EquityChart";
+import VerdictCard from "@/components/dashboard/VerdictCard";
 import { fmtCompactNum } from "@/lib/format";
+import Footer from "@/components/Footer";
 
 export default function Home() {
   const t = useTranslations("HomePage");
@@ -114,7 +116,7 @@ export default function Home() {
       : (locale === "fr" ? `/fr/trades/${lastAddress}?start=${activeStart}&end=${activeEnd}` : `/trades/${lastAddress}?start=${activeStart}&end=${activeEnd}`);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
       <header className="border-b border-slate-800 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -209,6 +211,9 @@ export default function Home() {
               </div>
             </div>
 
+            {/* Verdict */}
+            {data.tradeCount > 0 && <VerdictCard data={data} />}
+
             {/* Stat cards */}
             <StatGrid stats={data.insights.general} />
 
@@ -259,6 +264,7 @@ export default function Home() {
           </div>
         )}
       </main>
+      <Footer locale={locale} />
     </div>
   );
 }

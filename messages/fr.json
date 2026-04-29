@@ -94,6 +94,87 @@
     "minutesAgo": "il y a {n} min",
     "refresh": "Actualiser"
   },
+  "AboutPage": {
+    "metaTitle": "À propos — Steady",
+    "metaDescription": "Des analytics honnêtes pour les traders Hyperliquid. Ce que fait Steady, qui l'a construit, et pourquoi.",
+    "title": "À propos de Steady",
+    "intro": "Steady, ce sont des analytics honnêtes pour les traders Hyperliquid. L'outil qui te dit pourquoi tu perds de l'argent — et ce que tu dois changer.",
+    "whyTitle": "Pourquoi j'ai construit ça",
+    "why1": "Je suis trader. J'ai construit Steady parce que tous les outils que j'ai essayés ressemblaient à un coach payé pour me flatter. Jolis graphiques, gros chiffres, citations motivantes. Aucun ne m'a dit la vérité : je perdais parce que je prenais des revenge trades après chaque perte, je scalp quand je devrais swinguer, et je surdimensionne mes positions sur des coins que je ne maîtrise pas.",
+    "why2": "Je voulais un outil qui me dise objectivement ce qui ne va pas, avec mes propres données. Alors je l'ai construit.",
+    "whatTitle": "Ce que fait Steady",
+    "what1": "Reconstruit chaque trade sur Hyperliquid avec une comptabilité FIFO",
+    "what2": "Calcule les vraies métriques : win rate par direction, RR, drawdown, durée, frais de funding",
+    "what3": "Détecte les patterns comportementaux : revenge trades, biais scalping, drift de levier",
+    "what4": "Génère un verdict et une action concrète à prendre",
+    "whatNote": "Tout depuis les données publiques on-chain de ton wallet. Pas de connexion, pas de clé API. Lecture seule.",
+    "doesNotTitle": "Ce que Steady ne fait pas",
+    "doesNot1": "Donner des conseils en investissement",
+    "doesNot2": "Prédire les marchés",
+    "doesNot3": "Envoyer des signaux de trading",
+    "doesNot4": "Gérer tes positions",
+    "doesNot5": "Vendre tes données",
+    "whoTitle": "Qui a construit Steady",
+    "who1": "Une seule personne. En early beta — le produit évolue chaque jour en fonction des retours utilisateurs.",
+    "whoContact": "Tu peux me contacter sur Twitter — le moyen le plus rapide d'obtenir une réponse.",
+    "twitterLink": "@usesteadytrade ↗",
+    "pricingTitle": "Tarification",
+    "pricing1": "Steady est gratuit en beta. Un tier Pro (19 $/mois) sera lancé avec la gestion multi-wallets, l'historique complet, les exports et les alertes.",
+    "pricing2": "La version gratuite restera toujours suffisamment utile."
+  },
+  "FaqPage": {
+    "metaTitle": "FAQ — Steady",
+    "metaDescription": "Questions fréquentes sur Steady — sécurité des données, précision, plateformes supportées et plus.",
+    "title": "Questions fréquentes",
+    "q1": {
+      "q": "Mes données sont-elles en sécurité ?",
+      "a": "Oui. Steady n'utilise que les données publiques on-chain d'Hyperliquid. Nous ne demandons jamais de clé API, de clé privée ou de connexion de wallet. Ton wallet est identifié uniquement par son adresse publique — les mêmes données que n'importe qui peut voir sur la blockchain."
+    },
+    "q2": {
+      "q": "Pourquoi dois-je entrer mon adresse wallet ?",
+      "a": "Pour analyser ton historique de trading. Steady récupère tes fills publics sur Hyperliquid et reconstruit tes trades avec une comptabilité FIFO. Nous mettons le résultat en cache pour accélérer les prochaines visites."
+    },
+    "q3": {
+      "q": "Puis-je supprimer mes données ?",
+      "a": "Oui. Envoie-nous un DM sur Twitter @usesteadytrade avec ton adresse wallet et nous effacerons notre cache en moins de 48h. Note : les données sous-jacentes restent sur la blockchain publique d'Hyperliquid — seul notre cache est supprimé."
+    },
+    "q4": {
+      "q": "Les données sont-elles précises ?",
+      "a": "Nous utilisons la comptabilité FIFO (premier entré, premier sorti) pour associer les ouvertures et les clôtures — la même méthode que les outils professionnels comme Cointracking. Les totaux de PnL correspondent à l'euro près à ceux reportés par Hyperliquid."
+    },
+    "q5": {
+      "q": "Pourquoi le PnL d'une baleine semble-t-il différent de ce à quoi je m'attendais ?",
+      "a": "Les baleines scalent leurs positions des milliers de fois. Les anciens outils traitaient toute leur période de détention comme un seul trade. Steady utilise FIFO pour le décomposer en allers-retours individuels. Le PnL total est identique, mais les métriques comme le win rate et le RR deviennent significatives."
+    },
+    "q6": {
+      "q": "Que se passe-t-il si une position a été ouverte avant ma fenêtre d'analyse ?",
+      "a": "Steady analyse une fenêtre temporelle fixe (30 jours par défaut). Si une position a été ouverte avant la période sélectionnée, le prix d'entrée utilisé dans les calculs vient du premier fill visible, pas de l'entrée réelle. C'est une limitation connue de l'analyse par fenêtre."
+    },
+    "q7": {
+      "q": "Quelle est la différence entre Steady et les analytics d'Hyperliquid ?",
+      "a": "Hyperliquid affiche ton PnL et des stats de base. Steady t'explique pourquoi tu gagnes ou perds — patterns comportementaux, performance par heure, RR, et une action concrète à prendre."
+    },
+    "q8": {
+      "q": "À quelle fréquence les données sont-elles mises à jour ?",
+      "a": "Les données en cache se mettent à jour à la demande (bouton \"Actualiser\") ou automatiquement après 1 heure. Les nouveaux trades apparaissent au prochain chargement de ton adresse."
+    },
+    "q9": {
+      "q": "Pourquoi ma métrique préférée n'est-elle pas là ?",
+      "a": "Parce qu'on ne l'a pas encore construite. Tweet ta demande à @usesteadytrade — la plupart des suggestions raisonnables sont intégrées dans la semaine."
+    },
+    "q10": {
+      "q": "Steady supporte-t-il d'autres exchanges ?",
+      "a": "Pas encore. Hyperliquid en premier parce que ses données sont entièrement on-chain et gratuitement accessibles. Binance et Bybit sont sur la roadmap, mais nécessitent des clés API — un modèle de sécurité différent."
+    },
+    "q11": {
+      "q": "Steady est-il disponible dans d'autres langues ?",
+      "a": "Actuellement en anglais et en français. D'autres langues seront ajoutées selon la demande."
+    },
+    "q12": {
+      "q": "Puis-je utiliser Steady sur mobile ?",
+      "a": "Oui — l'application est entièrement responsive. Une app iOS/Android native n'est pas prévue à court terme."
+    }
+  },
   "Cards": {
     "StatGrid": {
       "totalPnl": "Total P&L",

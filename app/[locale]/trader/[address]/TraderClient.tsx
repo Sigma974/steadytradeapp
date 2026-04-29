@@ -24,6 +24,7 @@ import TPSLCard from "@/components/dashboard/TPSLCard";
 import RecentWRCard from "@/components/dashboard/RecentWRCard";
 import EquityChart from "@/components/dashboard/EquityChart";
 import DrawdownCard from "@/components/dashboard/DrawdownCard";
+import VerdictCard from "@/components/dashboard/VerdictCard";
 
 const HL_EXPLORER = "https://app.hyperliquid.xyz/explorer";
 const MY_ADDRESS_KEY = "steady_my_address";
@@ -249,7 +250,7 @@ export default function TraderClient({ address, initialData, daysBack: initialDa
     const bestDir = d.insights.directionWinRate.dominantDirection ?? "long";
     const url = `https://steadytrade.org/trader/${address}`;
     const lines = [
-      `Just analyzed this Hyperliquid trader on @usesteady:`,
+      `Just analyzed this Hyperliquid trader on @usesteadytrade:`,
       `→ ${wr}% win rate`,
       `→ ${pnl} PnL on ${d.tradeCount} trades`,
       bestCoin ? `→ Best at ${bestDir} ${bestCoin}` : "",
@@ -363,6 +364,8 @@ export default function TraderClient({ address, initialData, daysBack: initialDa
 
         {data && data.tradeCount > 0 && (
           <div className="space-y-4">
+            <VerdictCard data={data} />
+
             <StatGrid stats={data.insights.general} />
 
             <EquityChart insight={data.insights.equity} />

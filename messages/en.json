@@ -94,6 +94,87 @@
     "minutesAgo": "{n} min ago",
     "refresh": "Refresh"
   },
+  "AboutPage": {
+    "metaTitle": "About — Steady",
+    "metaDescription": "Honest analytics for Hyperliquid traders. Learn what Steady does, who built it, and why it exists.",
+    "title": "About Steady",
+    "intro": "Steady is honest analytics for Hyperliquid traders. It helps you understand why you're losing money — and what to change.",
+    "whyTitle": "Why I built this",
+    "why1": "I'm a trader. I built Steady because every existing tool I tried felt like a coach paid to flatter me. They showed pretty charts, big numbers, motivational quotes. None of them told me the hard truth: I was losing because I revenge-trade after losses, scalp when I should swing, and use too much leverage on coins I don't understand.",
+    "why2": "I wanted a tool that would tell me what's wrong, factually, with my own data. So I built it.",
+    "whatTitle": "What Steady does",
+    "what1": "Reconstructs every trade you've made on Hyperliquid using FIFO accounting",
+    "what2": "Calculates real metrics: win rate by direction, RR, drawdown, hold time, funding cost",
+    "what3": "Detects behavioral patterns: revenge trading, scalping bias, leverage drift",
+    "what4": "Generates a verdict and one concrete action to take",
+    "whatNote": "All from your wallet's public on-chain data. No login. No API key. Read-only.",
+    "doesNotTitle": "What Steady doesn't do",
+    "doesNot1": "Give financial advice",
+    "doesNot2": "Predict markets",
+    "doesNot3": "Send trading signals",
+    "doesNot4": "Manage your positions",
+    "doesNot5": "Sell your data",
+    "whoTitle": "Who built it",
+    "who1": "Just one person. Currently in early beta — the product evolves daily based on user feedback.",
+    "whoContact": "You can reach me on Twitter — fastest way to get a response.",
+    "twitterLink": "@usesteadytrade ↗",
+    "pricingTitle": "Pricing",
+    "pricing1": "Steady is free during beta. A Pro tier ($19/month) will launch with multi-wallet support, full historical data, exports, and alerts.",
+    "pricing2": "The free version will always include enough to be useful."
+  },
+  "FaqPage": {
+    "metaTitle": "FAQ — Steady",
+    "metaDescription": "Frequently asked questions about Steady — data safety, accuracy, supported platforms, and more.",
+    "title": "Frequently Asked Questions",
+    "q1": {
+      "q": "Is my data safe?",
+      "a": "Yes. Steady uses only public on-chain data from Hyperliquid. We never ask for API keys, private keys, or login credentials. Your wallet is identified only by its public address — the same data anyone can see on the blockchain."
+    },
+    "q2": {
+      "q": "Why do I need to enter my wallet address?",
+      "a": "To analyze your trading history. Steady fetches your public fills from Hyperliquid and reconstructs your trades using FIFO accounting. We cache the result so future visits load faster."
+    },
+    "q3": {
+      "q": "Can I delete my data?",
+      "a": "Yes. DM us on Twitter @usesteadytrade with your wallet address and we'll clear it from Steady's cache within 48 hours. Note: the underlying data will still exist on Hyperliquid's public blockchain — only our cache is deleted."
+    },
+    "q4": {
+      "q": "How accurate is the data?",
+      "a": "We use FIFO (First In First Out) accounting to match opens and closes — the same method used by professional tools like Cointracking. PnL totals match Hyperliquid's reported figures to the cent."
+    },
+    "q5": {
+      "q": "Why does a whale's PnL look so different from what I expected?",
+      "a": "Whales scale in and out of positions thousands of times. Older tools treated their entire holding period as one trade. Steady uses FIFO to split it into individual round-trips. The total PnL is identical, but metrics like win rate and RR become meaningful."
+    },
+    "q6": {
+      "q": "What if a position was opened before my analysis window?",
+      "a": "Steady analyzes a fixed time window (default 30 days). If a position was opened before your selected window, the entry price used in calculations comes from the first visible fill, not the actual entry. This is a known limitation of windowed analysis."
+    },
+    "q7": {
+      "q": "What's the difference between Steady and Hyperliquid's own analytics?",
+      "a": "Hyperliquid shows your PnL and basic stats. Steady tells you why you're winning or losing — behavioral patterns, time-based performance, RR, and a concrete action to take."
+    },
+    "q8": {
+      "q": "How often is data refreshed?",
+      "a": "Cached data refreshes on demand (click \"Refresh\") or automatically after 1 hour. New trades show up the next time you analyze your address."
+    },
+    "q9": {
+      "q": "Why isn't my favorite metric here?",
+      "a": "Because we haven't built it yet. Tweet your request to @usesteadytrade — most reasonable feature requests ship within a week."
+    },
+    "q10": {
+      "q": "Does Steady support other exchanges?",
+      "a": "Not yet. Hyperliquid first because its data is fully on-chain and free to query. Binance and Bybit support is on the roadmap but requires API keys, which is a different security model."
+    },
+    "q11": {
+      "q": "Is Steady available in other languages?",
+      "a": "Currently English and French. More languages will be added based on user demand."
+    },
+    "q12": {
+      "q": "Can I use Steady on mobile?",
+      "a": "Yes — the app is fully mobile-responsive. A native iOS/Android app is not planned in the short term."
+    }
+  },
   "Cards": {
     "StatGrid": {
       "totalPnl": "Total P&L",
