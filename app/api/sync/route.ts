@@ -110,7 +110,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     daysBack = 30,
     startTime,
     endTime,
-    revengeWindowSeconds = 300,
+    revengeWindowSeconds = 1800,
     force,
   } = body;
 

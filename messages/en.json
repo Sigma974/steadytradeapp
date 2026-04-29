@@ -222,6 +222,54 @@
       "insightNeutral": "Net funding zero over the period.",
       "rateLimited": "Funding data unavailable (rate limited by Hyperliquid)."
     },
+    "Verdict": {
+      "notEnough": "Not enough data for a verdict yet — keep trading and check back.",
+      "revenge": {
+        "title": "Revenge trading is costing you",
+        "explanation": "{pct}% of your trades are taken within {window} min of a loss. They cost you {amount} over this period.",
+        "action": "Block yourself from trading 1 hour after any closed loss."
+      },
+      "scalping": {
+        "title": "Quick trades aren't your edge",
+        "explanation": "{pct}% of your trades close in under 30 min — they cost you {amount}. Your longer trades made {longAmount}.",
+        "action": "Aim for holds above 2 hours. Set a minimum timer before entering."
+      },
+      "scalpingNoLong": {
+        "title": "Quick trades aren't your edge",
+        "explanation": "{pct}% of your trades close in under 30 min — they cost you {amount}. You never hold a position over 4 hours.",
+        "action": "Try one swing trade this week. Set a 4-hour minimum before closing a position."
+      },
+      "drawdown": {
+        "title": "Risk management needs attention",
+        "explanation": "Your max drawdown reached -{pct}%. Professional traders typically cap at -15–20%.",
+        "action": "Reduce position size by 30–50% on your next trades."
+      },
+      "decliningWR": {
+        "title": "Recent performance slipping",
+        "explanation": "Your win rate over the last {days} days is {recent}% — {diff} points below your overall average of {total}%.",
+        "action": "Take a 24h break and review your last 5 losses before trading again."
+      },
+      "longBias": {
+        "title": "Bias detected: longs work, shorts don't",
+        "explanation": "Long win rate: {longWR}%. Short win rate: {shortWR}%. Your shorts cost you {amount}.",
+        "action": "Consider trading longs only for 2 weeks and track if results improve."
+      },
+      "funding": {
+        "title": "Funding fees are eating your gains",
+        "explanation": "You paid {amount} in funding fees — that's {pct}% of your absolute P&L.",
+        "action": "Time exits before funding events. Avoid holding through high-rate periods."
+      },
+      "success": {
+        "title": "Solid performance",
+        "explanation": "Profitable, low drawdown, consistent win rate. Your discipline is paying off.",
+        "action": "Don't change a winning approach. Resist the urge to size up impulsively."
+      },
+      "neutral": {
+        "title": "Mixed signals",
+        "explanation": "No clear pattern dominates your data yet. More trades will give clearer insights.",
+        "action": "Continue trading and check back in 2 weeks."
+      }
+    },
     "Equity": {
       "title": "Equity Curve",
       "notEnough": "Not enough trades.",

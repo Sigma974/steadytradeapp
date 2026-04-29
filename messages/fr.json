@@ -222,6 +222,54 @@
       "insightNeutral": "Funding net nul sur la période.",
       "rateLimited": "Données de funding indisponibles (rate limit Hyperliquid)."
     },
+    "Verdict": {
+      "notEnough": "Pas encore assez de données pour un verdict — continue à trader et reviens.",
+      "revenge": {
+        "title": "Les revenge trades pèsent sur tes résultats",
+        "explanation": "{pct}% de tes trades sont pris dans les {window} min après une perte. Ils t'ont coûté {amount} sur cette période.",
+        "action": "Bloque-toi de trader 1h après chaque perte fermée."
+      },
+      "scalping": {
+        "title": "Le scalping n'est pas ton edge",
+        "explanation": "{pct}% de tes trades se ferment en moins de 30 min — ils te coûtent {amount}. Tes trades plus longs ont rapporté {longAmount}.",
+        "action": "Vise des holds de plus de 2h. Mets un minuteur minimum avant d'entrer."
+      },
+      "scalpingNoLong": {
+        "title": "Le scalping n'est pas ton edge",
+        "explanation": "{pct}% de tes trades se ferment en moins de 30 min — ils te coûtent {amount}. Tu ne tiens jamais une position plus de 4h.",
+        "action": "Essaie un seul trade swing cette semaine. Fixe-toi un minimum de 4h avant de fermer."
+      },
+      "drawdown": {
+        "title": "La gestion du risque mérite attention",
+        "explanation": "Ton drawdown max a atteint -{pct}%. Les traders pro plafonnent généralement à -15–20%.",
+        "action": "Réduis ta taille de position de 30–50% sur tes prochains trades."
+      },
+      "decliningWR": {
+        "title": "Performances récentes en recul",
+        "explanation": "Ton win rate sur les {days} derniers jours est de {recent}% — {diff} points sous ta moyenne globale de {total}%.",
+        "action": "Prends une pause de 24h et analyse tes 5 dernières pertes avant de retourner trader."
+      },
+      "longBias": {
+        "title": "Biais détecté : les longs fonctionnent, pas les shorts",
+        "explanation": "Win rate long : {longWR}%. Win rate short : {shortWR}%. Tes shorts t'ont coûté {amount}.",
+        "action": "Envisage de ne trader que des longs pendant 2 semaines et vois si ça s'améliore."
+      },
+      "funding": {
+        "title": "Le funding grignote tes gains",
+        "explanation": "Tu as payé {amount} de funding fees — soit {pct}% de ton PnL absolu.",
+        "action": "Anticipe les sorties avant les événements de funding. Évite de tenir en période de taux élevés."
+      },
+      "success": {
+        "title": "Performances solides",
+        "explanation": "Profitable, drawdown faible, win rate régulier. Ta discipline porte ses fruits.",
+        "action": "Ne change pas une approche gagnante. Résiste à l'envie d'augmenter les tailles impulsivement."
+      },
+      "neutral": {
+        "title": "Signaux mixtes",
+        "explanation": "Aucun pattern ne domine encore tes données. Plus de trades donneront des insights plus clairs.",
+        "action": "Continue à trader et reviens d'ici 2 semaines."
+      }
+    },
     "Equity": {
       "title": "Courbe de capital",
       "notEnough": "Pas assez de trades.",
