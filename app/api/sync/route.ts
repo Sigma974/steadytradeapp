@@ -142,20 +142,33 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // Prune old rate limit rows ~10% of the time to keep the table small
   if (Math.random() < 0.1) pruneRateLimitLog();
 
-  const start = startTime
+  // Extra fill history fetched before the analysis window to pre-populate the
+  // FIFO queue.  Without this, positions opened before the window would appear
+  // as orphan closing fills and be silently dropped.  30 days covers the vast
+  // majority of perp positions; longer-held positions get a UI disclaimer.
+  const WARMUP_DAYS = 30;
+
+  const requestedStart = startTime
     ? new Date(startTime)
     : new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000);
+  const warmupStart = new Date(
+    requestedStart.getTime() - WARMUP_DAYS * 24 * 60 * 60 * 1000
+  );
   const end = endTime ? new Date(endTime) : undefined;
 
   try {
     const [fillsResult, fundingResult] = await Promise.allSettled([
-      fetchUserFills(address, start, end),
-      fetchUserFunding(address, start, end),
+      fetchUserFills(address, warmupStart, end),
+      fetchUserFunding(address, requestedStart, end),
     ]);
 
     // Fills are critical — propagate any error
     if (fillsResult.status === "rejected") throw fillsResult.reason;
-    const fills = fillsResult.value;
+    const allFills = fillsResult.value;
+
+    // Only expose fills within the requested window in the serialized response
+    const requestedStartMs = requestedStart.getTime();
+    const fills = allFills.filter((f) => f.timeMs >= requestedStartMs);
 
     // Funding is optional — degrade gracefully on rate limit
     const fundingRateLimited =
@@ -167,7 +180,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const fundingPayments =
       fundingResult.status === "fulfilled" ? fundingResult.value : [];
 
-    const trades = reconstructTrades(fills);
+    // Pass all fills (incl. warmup) so the queue is correctly seeded.
+    // emitAfter ensures only trades closed within the requested window are returned.
+    const trades = reconstructTrades(allFills, requestedStart);
     const revenge = detectRevengeTrades(trades, revengeWindowSeconds);
 
     const serializedRevenge: SerializedRevengeInsight = {

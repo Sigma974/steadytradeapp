@@ -63,9 +63,10 @@ export interface SerializedFill {
   tid: number;
 }
 
-// Bump this whenever SyncData.insights gains or changes fields.
-// getCachedSync rejects entries with a mismatched version, forcing a re-fetch.
-export const SCHEMA_VERSION = 9;
+// Bump this whenever SyncData.insights gains or changes fields, or when the
+// trade reconstruction algorithm changes (forcing existing caches to expire).
+// v11: FIFO lot matching with proper scale in/out — fixes whale sub-trade count (2 → 13k+).
+export const SCHEMA_VERSION = 11;
 
 export interface SyncData {
   schemaVersion: number;

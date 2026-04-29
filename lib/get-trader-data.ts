@@ -44,20 +44,31 @@ function serializeTrade(t: Trade) {
   };
 }
 
+// Extra days of fills fetched before the analysis window to correctly seed the
+// FIFO queue for positions that were opened before the requested start date.
+const WARMUP_DAYS = 30;
+
 export async function getTraderData(
   address: string,
   daysBack = 90,
   revengeWindowSeconds = 300
 ): Promise<SyncData> {
-  const start = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000);
+  const requestedStart = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000);
+  const warmupStart = new Date(
+    requestedStart.getTime() - WARMUP_DAYS * 24 * 60 * 60 * 1000
+  );
 
   const [fillsResult, fundingResult] = await Promise.allSettled([
-    fetchUserFills(address, start),
-    fetchUserFunding(address, start),
+    fetchUserFills(address, warmupStart),
+    fetchUserFunding(address, requestedStart),
   ]);
 
   if (fillsResult.status === "rejected") throw fillsResult.reason;
-  const fills = fillsResult.value;
+  const allFills = fillsResult.value;
+
+  // Only expose fills within the requested window in the serialized response
+  const requestedStartMs = requestedStart.getTime();
+  const fills = allFills.filter((f) => f.timeMs >= requestedStartMs);
 
   const fundingRateLimited =
     fundingResult.status === "rejected" &&
@@ -68,7 +79,9 @@ export async function getTraderData(
   const fundingPayments =
     fundingResult.status === "fulfilled" ? fundingResult.value : [];
 
-  const trades = reconstructTrades(fills);
+  // Pass all fills (incl. warmup) so the queue is correctly seeded.
+  // emitAfter ensures only trades closed within the requested window are returned.
+  const trades = reconstructTrades(allFills, requestedStart);
   const revenge = detectRevengeTrades(trades, revengeWindowSeconds);
 
   const serializedRevenge: SerializedRevengeInsight = {
