@@ -380,6 +380,7 @@
       "title": "Analyse du drawdown",
       "notEnough": "Pas assez de données",
       "noDrawdown": "Aucun drawdown détecté — cohérence exceptionnelle",
+      "noMajorDrawdown": "Pas de drawdown majeur détecté",
       "maxDd": "Drawdown maximum",
       "peak": "Pic",
       "bottom": "Creux",

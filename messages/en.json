@@ -380,6 +380,7 @@
       "title": "Drawdown Analysis",
       "notEnough": "Not enough data",
       "noDrawdown": "No drawdown detected — exceptional consistency",
+      "noMajorDrawdown": "No major drawdown detected",
       "maxDd": "Max Drawdown",
       "peak": "Peak",
       "bottom": "Bottom",

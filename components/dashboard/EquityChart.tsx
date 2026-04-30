@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import {
   AreaChart,
   Area,
@@ -29,9 +29,14 @@ function fmtY(v: number): string {
   return `${sign}$${abs.toFixed(0)}`;
 }
 
-function fmtDate(dateStr: string): string {
+function fmtDate(dateStr: string, locale: string): string {
   const d = new Date(dateStr + "T00:00:00Z");
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+  return d.toLocaleDateString(locale, { month: "short", day: "numeric", timeZone: "UTC" });
+}
+
+function fmtDateLong(dateStr: string, locale: string): string {
+  const d = new Date(dateStr + "T00:00:00Z");
+  return d.toLocaleDateString(locale, { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
 }
 
 function getXTicks(n: number): number[] {
@@ -45,12 +50,12 @@ function getXTicks(n: number): number[] {
 
 type ChartPoint = EquityInsight["points"][number];
 
-function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: ChartPoint }> }) {
+function CustomTooltip({ active, payload, locale }: { active?: boolean; payload?: Array<{ payload: ChartPoint }>; locale: string }) {
   if (!active || !payload?.length) return null;
   const pt = payload[0].payload;
   return (
     <div className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs space-y-0.5 shadow-xl">
-      <p className="text-slate-400">{fmtDate(pt.date)}</p>
+      <p className="text-slate-400">{fmtDateLong(pt.date, locale)}</p>
       <p className={`font-mono font-semibold ${pnlColor(pt.equity)}`}>{fmtPnl(pt.equity)}</p>
       <p className="text-slate-500">#{pt.idx}</p>
     </div>
@@ -59,6 +64,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
 
 export default function EquityChart({ insight }: Props) {
   const t = useTranslations("Cards.Equity");
+  const locale = useLocale();
 
   if (!insight || insight.points.length < 2) {
     return (
@@ -125,7 +131,7 @@ export default function EquityChart({ insight }: Props) {
                 type="number"
                 domain={[1, points.length]}
                 ticks={getXTicks(points.length)}
-                tickFormatter={(val: number) => fmtDate(points[Math.min(Math.round(val) - 1, points.length - 1)]?.date ?? "")}
+                tickFormatter={(val: number) => fmtDate(points[Math.min(Math.round(val) - 1, points.length - 1)]?.date ?? "", locale)}
                 tick={{ fontSize: 9, fill: "#64748b" }}
                 axisLine={false}
                 tickLine={false}
@@ -141,7 +147,7 @@ export default function EquityChart({ insight }: Props) {
                 domain={[minE - padding, maxE + padding]}
               />
 
-              <Tooltip content={<CustomTooltip />} cursor={{ stroke: "#475569", strokeWidth: 1 }} />
+              <Tooltip content={<CustomTooltip locale={locale} />} cursor={{ stroke: "#475569", strokeWidth: 1 }} />
 
               {maxDrawdown && (
                 <>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { EquityInsight } from "@/lib/api-types";
 import { fmtPnl, fmtPct, fmtCompact, fmtCompactUsd, fmtUsd } from "@/lib/format";
@@ -9,9 +9,9 @@ interface Props {
   insight: EquityInsight;
 }
 
-function fmtDate(dateStr: string): string {
+function fmtDate(dateStr: string, locale: string): string {
   const d = new Date(dateStr + "T00:00:00Z");
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+  return d.toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 }
 
 function insightKey(pct: number): string {
@@ -39,6 +39,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 export default function DrawdownCard({ insight }: Props) {
   const t = useTranslations("Cards.Drawdown");
+  const locale = useLocale();
 
   if (!insight || insight.points.length < 3) {
     return (
@@ -54,13 +55,16 @@ export default function DrawdownCard({ insight }: Props) {
   }
 
   if (!insight.maxDrawdown) {
+    const isExceptional = insight.finalEquity > 0;
     return (
       <Card className="bg-slate-900 border-slate-800">
         <CardHeader className="pb-2 pt-4 px-4">
           <CardTitle className="text-sm font-semibold text-slate-200">{t("title")}</CardTitle>
         </CardHeader>
         <CardContent className="px-4 pb-4">
-          <p className="text-sm text-emerald-400 font-medium leading-snug">{t("noDrawdown")}</p>
+          <p className={`text-sm font-medium leading-snug ${isExceptional ? "text-emerald-400" : "text-slate-400"}`}>
+            {isExceptional ? t("noDrawdown") : t("noMajorDrawdown")}
+          </p>
         </CardContent>
       </Card>
     );
@@ -99,7 +103,7 @@ export default function DrawdownCard({ insight }: Props) {
             >
               {fmtCompact(maxDrawdown.peakEquity)}
             </span>
-            <span className="text-slate-500 block">{fmtDate(maxDrawdown.peakDate)}</span>
+            <span className="text-slate-500 block">{fmtDate(maxDrawdown.peakDate, locale)}</span>
           </Row>
           <Row label={t("bottom")}>
             <span
@@ -108,7 +112,7 @@ export default function DrawdownCard({ insight }: Props) {
             >
               {fmtCompact(maxDrawdown.troughEquity)}
             </span>
-            <span className="text-slate-500 block">{fmtDate(maxDrawdown.troughDate)}</span>
+            <span className="text-slate-500 block">{fmtDate(maxDrawdown.troughDate, locale)}</span>
           </Row>
           <Row label={t("recoveryTime")}>
             {maxDrawdown.recoveryDays !== null ? (

@@ -45,8 +45,12 @@ export function calculateVerdict(data: SyncData): Verdict | null {
   // 2 — Scalping not working
   const shortBucket = holdTime.buckets.find((b) => b.maxSeconds === 1800);
   if (shortBucket && shortBucket.pctOfTrades > 0.6 && shortBucket.totalPnl < 0) {
-    const hasLongTrades = holdTime.buckets.some((b) => b.minSeconds >= 14400 && b.count > 0);
-    if (!hasLongTrades) {
+    // "long" = any bucket starting at 2h+ (includes 2h–8h, 8h–24h, >24h)
+    const hasLongTrades = holdTime.buckets.some((b) => b.minSeconds >= 7200 && b.count > 0);
+    const longPnl = holdTime.buckets
+      .filter((b) => b.minSeconds >= 7200)
+      .reduce((s, b) => s + b.totalPnl, 0);
+    if (!hasLongTrades || longPnl <= 0) {
       return {
         type: "warning",
         key: "scalpingNoLong",
@@ -56,9 +60,6 @@ export function calculateVerdict(data: SyncData): Verdict | null {
         },
       };
     }
-    const longPnl = holdTime.buckets
-      .filter((b) => b.minSeconds >= 14400)
-      .reduce((s, b) => s + b.totalPnl, 0);
     return {
       type: "warning",
       key: "scalping",
