@@ -18,7 +18,7 @@ export interface LeverageInsight {
   totalTrades: number;
 }
 
-// Notional thresholds (USD). Conceptually map to low→high leverage tiers.
+// Notional thresholds (USD) — position size tiers.
 const THRESHOLDS: Array<{ label: string; min: number; max: number }> = [
   { label: "<$1K",       min: 0,       max: 1_000 },
   { label: "$1K–$5K",    min: 1_000,   max: 5_000 },

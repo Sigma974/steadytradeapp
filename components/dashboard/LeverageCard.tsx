@@ -12,6 +12,16 @@ export default function LeverageCard({ insight }: Props) {
   if (!insight) return null;
   const { buckets, bestBucket, worstBucket } = insight;
 
+  const bucketLabels = {
+    0: t("buckets.lt1k"),
+    1000: t("buckets.1k5k"),
+    5000: t("buckets.5k25k"),
+    25000: t("buckets.25k100k"),
+    100000: t("buckets.gt100k"),
+  } as const;
+  const bucketLabel = (minNotional: number): string =>
+    bucketLabels[minNotional as keyof typeof bucketLabels] ?? String(minNotional);
+
   if (buckets.length === 0) {
     return (
       <Card className="bg-slate-900 border-slate-800 h-full">
@@ -28,17 +38,17 @@ export default function LeverageCard({ insight }: Props) {
   }
 
   const maxAbsPnl = Math.max(...buckets.map((b) => Math.abs(b.totalPnl)), 1);
-  const bestLabel = bestBucket?.label;
-  const worstLabel = worstBucket?.label;
+  const bestMinNotional = bestBucket?.minNotional;
+  const worstMinNotional = worstBucket?.minNotional;
   const onlyOneBucket = buckets.length === 1;
 
   const insightLine =
-    !onlyOneBucket && bestBucket && worstBucket && bestBucket.label !== worstBucket.label
+    !onlyOneBucket && bestBucket && worstBucket && bestBucket.minNotional !== worstBucket.minNotional
       ? t("insightLine", {
-          best: bestBucket.label,
+          best: bucketLabel(bestBucket.minNotional),
           bestWR: fmtPct(bestBucket.winRate),
           bestPnl: fmtCompact(bestBucket.totalPnl),
-          worst: worstBucket.label,
+          worst: bucketLabel(worstBucket.minNotional),
           worstWR: fmtPct(worstBucket.winRate),
           worstPnl: fmtCompact(worstBucket.totalPnl),
         })
@@ -60,11 +70,11 @@ export default function LeverageCard({ insight }: Props) {
           {buckets.map((bucket) => {
             const barWidth = (Math.abs(bucket.totalPnl) / maxAbsPnl) * 100;
             const isPositive = bucket.totalPnl >= 0;
-            const isBest = bucket.label === bestLabel && !onlyOneBucket;
-            const isWorst = bucket.label === worstLabel && !onlyOneBucket;
+            const isBest = bucket.minNotional === bestMinNotional && !onlyOneBucket;
+            const isWorst = bucket.minNotional === worstMinNotional && !onlyOneBucket;
 
             return (
-              <div key={bucket.label} className="space-y-1">
+              <div key={bucket.minNotional} className="space-y-1">
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-1.5">
                     <span
@@ -76,7 +86,7 @@ export default function LeverageCard({ insight }: Props) {
                           : "text-slate-400"
                       }
                     >
-                      {bucket.label}
+                      {bucketLabel(bucket.minNotional)}
                     </span>
                     <span className="text-slate-600">
                       {bucket.count} trades · {fmtPct(bucket.winRate)} WR

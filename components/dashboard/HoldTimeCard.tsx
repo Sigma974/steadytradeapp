@@ -12,6 +12,16 @@ export default function HoldTimeCard({ insight }: Props) {
   if (!insight) return null;
   const { buckets, bestBucket, worstBucket } = insight;
 
+  const bucketLabels = {
+    0: t("buckets.lt30min"),
+    1800: t("buckets.30m2h"),
+    7200: t("buckets.2h8h"),
+    28800: t("buckets.8h24h"),
+    86400: t("buckets.gt24h"),
+  } as const;
+  const bucketLabel = (minSeconds: number): string =>
+    bucketLabels[minSeconds as keyof typeof bucketLabels] ?? String(minSeconds);
+
   if (buckets.length === 0) {
     return (
       <Card className="bg-slate-900 border-slate-800 h-full">
@@ -29,16 +39,16 @@ export default function HoldTimeCard({ insight }: Props) {
 
   const maxAbsPnl = Math.max(...buckets.map((b) => Math.abs(b.totalPnl)), 1);
   const onlyOne = buckets.length === 1;
-  const bestLabel = bestBucket?.label;
-  const worstLabel = worstBucket?.label;
+  const bestMinSec = bestBucket?.minSeconds;
+  const worstMinSec = worstBucket?.minSeconds;
 
   const insightLine = (() => {
-    if (onlyOne || !bestBucket || !worstBucket || bestLabel === worstLabel) return null;
+    if (onlyOne || !bestBucket || !worstBucket || bestMinSec === worstMinSec) return null;
     const bestProfit = bestBucket.totalPnl >= 0;
     const worstLoss = worstBucket.totalPnl < 0;
-    let text = t("insightBest", { best: bestBucket.label, bestPnl: fmtCompact(bestBucket.totalPnl), bestWR: fmtPct(bestBucket.winRate) });
+    let text = t("insightBest", { best: bucketLabel(bestBucket.minSeconds), bestPnl: fmtCompact(bestBucket.totalPnl), bestWR: fmtPct(bestBucket.winRate) });
     if (bestProfit && worstLoss) {
-      text += t("insightWorst", { worst: worstBucket.label, worstPnl: fmtCompact(worstBucket.totalPnl), worstWR: fmtPct(worstBucket.winRate) });
+      text += t("insightWorst", { worst: bucketLabel(worstBucket.minSeconds), worstPnl: fmtCompact(worstBucket.totalPnl), worstWR: fmtPct(worstBucket.winRate) });
     }
     return text;
   })();
@@ -58,11 +68,11 @@ export default function HoldTimeCard({ insight }: Props) {
         <div className="space-y-2.5">
           {buckets.map((bucket) => {
             const barWidth = (Math.abs(bucket.totalPnl) / maxAbsPnl) * 100;
-            const isBest = bucket.label === bestLabel && !onlyOne;
-            const isWorst = bucket.label === worstLabel && !onlyOne;
+            const isBest = bucket.minSeconds === bestMinSec && !onlyOne;
+            const isWorst = bucket.minSeconds === worstMinSec && !onlyOne;
 
             return (
-              <div key={bucket.label} className="space-y-1">
+              <div key={bucket.minSeconds} className="space-y-1">
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span
@@ -74,7 +84,7 @@ export default function HoldTimeCard({ insight }: Props) {
                           : "text-slate-400"
                       }`}
                     >
-                      {bucket.label}
+                      {bucketLabel(bucket.minSeconds)}
                     </span>
                     <span className="text-slate-600 truncate">
                       {bucket.count} trades · {fmtPct(bucket.winRate)} WR

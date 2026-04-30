@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { WeekdayInsight } from "@/lib/api-types";
 import { DISPLAY_ORDER } from "@/lib/insights/weekday";
@@ -10,6 +10,13 @@ interface Props {
 
 export default function WeekdayCard({ insight }: Props) {
   const t = useTranslations("Cards.Weekday");
+  const locale = useLocale();
+
+  const dayShort = (day: number) =>
+    new Intl.DateTimeFormat(locale, { weekday: "short" }).format(new Date(Date.UTC(2025, 0, 5 + day)));
+  const dayLong = (day: number) =>
+    new Intl.DateTimeFormat(locale, { weekday: "long" }).format(new Date(Date.UTC(2025, 0, 5 + day)));
+
   if (!insight) return null;
   const { byDay, bestDay, worstDay, weekendPctTrades, weekendTotalPnl, totalPnl } = insight;
 
@@ -39,10 +46,10 @@ export default function WeekdayCard({ insight }: Props) {
   const insightLine =
     bestDay && worstDay && bestDay.day !== worstDay.day
       ? t("insightLine", {
-          bestDay: bestDay.dayName,
+          bestDay: dayLong(bestDay.day),
           bestPnl: fmtCompact(bestDay.totalPnl),
           bestWR: fmtPct(bestDay.winRate),
-          worstDay: worstDay.dayName,
+          worstDay: dayLong(worstDay.day),
           worstPnl: fmtCompact(worstDay.totalPnl),
           worstWR: fmtPct(worstDay.winRate),
         })
@@ -83,7 +90,7 @@ export default function WeekdayCard({ insight }: Props) {
                       : "text-slate-400"
                   }`}
                 >
-                  {slot.dayName.slice(0, 3)}
+                  {dayShort(day)}
                 </span>
 
                 <div className="flex-1 h-5 bg-slate-800 rounded overflow-hidden relative">

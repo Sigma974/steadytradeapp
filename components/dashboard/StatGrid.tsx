@@ -7,10 +7,11 @@ interface Props {
   stats: GeneralStats;
 }
 
-function Stat({ label, value, sub, valueClass, exactTitle }: {
+function Stat({ label, value, sub, subTitle, valueClass, exactTitle }: {
   label: string;
   value: string;
   sub?: string;
+  subTitle?: string;
   valueClass?: string;
   exactTitle?: string;
 }) {
@@ -25,7 +26,7 @@ function Stat({ label, value, sub, valueClass, exactTitle }: {
         <p className={`text-2xl font-mono font-semibold ${valueClass ?? "text-slate-100"}`} title={exactTitle}>
           {value}
         </p>
-        {sub && <p className="text-xs text-slate-500 mt-1">{sub}</p>}
+        {sub && <p className="text-xs text-slate-500 mt-1" title={subTitle}>{sub}</p>}
       </CardContent>
     </Card>
   );
@@ -69,7 +70,8 @@ export default function StatGrid({ stats }: Props) {
       <Stat
         label={t("feesPaid")}
         value={fmtCompactUsd(stats.totalFeesSpent)}
-        sub={t("feesPaidSub", { pct: fmtPct(stats.totalFeesSpent / (Math.abs(stats.totalPnl) + stats.totalFeesSpent || 1)) })}
+        sub={t("feesPaidSub", { pct: fmtPct(stats.totalFeesSpent / ((stats.winners * stats.avgWinnerPnl + stats.losers * Math.abs(stats.avgLoserPnl)) || 1)) })}
+        subTitle={t("feesPaidSubTitle")}
         valueClass="text-amber-400 text-2xl font-mono font-semibold"
         exactTitle={fmtUsd(stats.totalFeesSpent)}
       />

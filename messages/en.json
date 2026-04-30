@@ -107,7 +107,7 @@
     "whatTitle": "What Steady does",
     "what1": "Reconstructs every trade you've made on Hyperliquid using FIFO accounting",
     "what2": "Calculates real metrics: win rate by direction, RR, drawdown, hold time, funding cost",
-    "what3": "Detects behavioral patterns: revenge trading, scalping bias, leverage drift",
+    "what3": "Detects behavioral patterns: revenge trading, scalping bias, drawdown patterns",
     "what4": "Generates a verdict and one concrete action to take",
     "whatNote": "All from your wallet's public on-chain data. No login. No API key. Read-only.",
     "doesNotTitle": "What Steady doesn't do",
@@ -189,6 +189,7 @@
       "totalTradesSub": "avg {duration} / trade",
       "feesPaid": "Fees Paid",
       "feesPaidSub": "{pct} of gross",
+      "feesPaidSubTitle": "fees / (gross wins + gross losses)",
       "avgDuration": "Avg Duration",
       "avgDurationSub": "W: {winner} · L: {loser}"
     },
@@ -278,7 +279,14 @@
       "title": "Position size",
       "notEnough": "Not enough data.",
       "insightLine": "{best} positions: {bestWR} WR, {bestPnl}. {worst} positions: {worstWR} WR, {worstPnl}.",
-      "footerNote": "Sorted by position size (notional USD). Leverage is not available via the Hyperliquid API."
+      "footerNote": "Sorted by position size (notional USD). Leverage is not available via the Hyperliquid API.",
+      "buckets": {
+        "lt1k": "<$1K",
+        "1k5k": "$1K–$5K",
+        "5k25k": "$5K–$25K",
+        "25k100k": "$25K–$100K",
+        "gt100k": ">$100K"
+      }
     },
     "Weekday": {
       "title": "Day of week",
@@ -292,7 +300,14 @@
       "title": "Trade duration",
       "notEnough": "Not enough data.",
       "insightBest": "Your {best} trades: {bestPnl} ({bestWR} WR).",
-      "insightWorst": " Your {worst} trades: {worstPnl} ({worstWR} WR)."
+      "insightWorst": " Your {worst} trades: {worstPnl} ({worstWR} WR).",
+      "buckets": {
+        "lt30min": "<30min",
+        "30m2h": "30min–2h",
+        "2h8h": "2h–8h",
+        "8h24h": "8h–24h",
+        "gt24h": ">24h"
+      }
     },
     "Funding": {
       "title": "Funding fees",

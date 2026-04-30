@@ -107,7 +107,7 @@
     "whatTitle": "Ce que fait Steady",
     "what1": "Reconstruit chaque trade sur Hyperliquid avec une comptabilité FIFO",
     "what2": "Calcule les vraies métriques : win rate par direction, RR, drawdown, durée, frais de funding",
-    "what3": "Détecte les patterns comportementaux : revenge trades, biais scalping, drift de levier",
+    "what3": "Détecte les patterns comportementaux : revenge trades, biais scalping, patterns de drawdown",
     "what4": "Génère un verdict et une action concrète à prendre",
     "whatNote": "Tout depuis les données publiques on-chain de ton wallet. Pas de connexion, pas de clé API. Lecture seule.",
     "doesNotTitle": "Ce que Steady ne fait pas",
@@ -189,6 +189,7 @@
       "totalTradesSub": "moy. {duration} / trade",
       "feesPaid": "Frais payés",
       "feesPaidSub": "{pct} du brut",
+      "feesPaidSubTitle": "frais / (gains bruts + pertes brutes)",
       "avgDuration": "Durée moyenne",
       "avgDurationSub": "G: {winner} · P: {loser}"
     },
@@ -278,7 +279,14 @@
       "title": "Taille de position",
       "notEnough": "Pas assez de données.",
       "insightLine": "Positions {best} : {bestWR} WR, {bestPnl}. Positions {worst} : {worstWR} WR, {worstPnl}.",
-      "footerNote": "Classé par taille de position (notional USD). Le levier n'est pas disponible via l'API Hyperliquid."
+      "footerNote": "Classé par taille de position (notional USD). Le levier n'est pas disponible via l'API Hyperliquid.",
+      "buckets": {
+        "lt1k": "<$1K",
+        "1k5k": "$1K–$5K",
+        "5k25k": "$5K–$25K",
+        "25k100k": "$25K–$100K",
+        "gt100k": ">$100K"
+      }
     },
     "Weekday": {
       "title": "Jour de la semaine",
@@ -292,7 +300,14 @@
       "title": "Durée de trade",
       "notEnough": "Pas assez de données.",
       "insightBest": "Tes trades {best} : {bestPnl} ({bestWR} WR).",
-      "insightWorst": " Tes trades {worst} : {worstPnl} ({worstWR} WR)."
+      "insightWorst": " Tes trades {worst} : {worstPnl} ({worstWR} WR).",
+      "buckets": {
+        "lt30min": "<30min",
+        "30m2h": "30min–2h",
+        "2h8h": "2h–8h",
+        "8h24h": "8h–24h",
+        "gt24h": ">24h"
+      }
     },
     "Funding": {
       "title": "Frais de funding",
