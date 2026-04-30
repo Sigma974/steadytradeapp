@@ -74,7 +74,9 @@
     "compareRR": "Realized RR",
     "compareLongWR": "Long WR",
     "compareShortWR": "Short WR",
-    "noTradesCustom": "No trades found for this address in the selected period."
+    "noTradesCustom": "No trades found for this address in the selected period.",
+    "backToHome": "Back to home",
+    "tagline": "Hyperliquid analytics"
   },
   "Period": {
     "7d": "7 days",
@@ -194,12 +196,15 @@
       "title": "Revenge Trades",
       "ofTradesOpenedWithin": "of trades opened within",
       "ofALoss": "of a loss",
-      "revengeLabel": "Revenge trades",
-      "normalLabel": "Normal trades",
+      "revengeLabel": "Win rate revenge trades",
+      "normalLabel": "Win rate normal trades",
       "avgGap": "Avg gap after a loss: {duration}",
       "recentLabel": "Recent",
       "afterLoss": "{duration} after loss",
-      "noRevenge": "No revenge trades detected."
+      "noRevenge": "No revenge trades detected.",
+      "insightWorse": "Your revenge trades perform {diff} points below your normal trades. Cool down after losses.",
+      "insightSurprising": "Surprisingly, your revenge trades aren't statistically worse — but stay cautious.",
+      "insightSlightlyWorse": "Your revenge trades perform slightly worse than normal. Watch for emotional triggers."
     },
     "Streak": {
       "title": "Trade Streaks",

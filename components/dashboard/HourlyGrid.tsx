@@ -55,7 +55,7 @@ export default function HourlyGrid({ insight }: Props) {
               {slot.tradeCount > 0 ? (
                 <>
                   <span className={`text-[10px] font-mono font-medium leading-none ${textColor(slot.totalPnl, slot.tradeCount)}`}>
-                    {fmtCompact(slot.totalPnl).replace("+", "").replace("$", "")}
+                    {fmtCompact(slot.totalPnl).replace("+$", "$")}
                   </span>
                   <span className="text-[9px] text-slate-500 leading-none">{slot.tradeCount}t</span>
                 </>

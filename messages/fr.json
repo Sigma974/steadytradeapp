@@ -74,7 +74,9 @@
     "compareRR": "RR réalisé",
     "compareLongWR": "WR long",
     "compareShortWR": "WR short",
-    "noTradesCustom": "Aucun trade trouvé pour cette adresse sur la période sélectionnée."
+    "noTradesCustom": "Aucun trade trouvé pour cette adresse sur la période sélectionnée.",
+    "backToHome": "Retour à l'accueil",
+    "tagline": "Analytiques Hyperliquid"
   },
   "Period": {
     "7d": "7 jours",
@@ -194,12 +196,15 @@
       "title": "Revenge Trades",
       "ofTradesOpenedWithin": "des trades ouverts dans les",
       "ofALoss": "après une perte",
-      "revengeLabel": "Revenge trades",
-      "normalLabel": "Trades normaux",
+      "revengeLabel": "Taux de réussite revenge",
+      "normalLabel": "Taux de réussite normaux",
       "avgGap": "Délai moyen après une perte : {duration}",
       "recentLabel": "Récents",
       "afterLoss": "{duration} après une perte",
-      "noRevenge": "Aucun revenge trade détecté."
+      "noRevenge": "Aucun revenge trade détecté.",
+      "insightWorse": "Tes revenge trades performent {diff} points en dessous de tes trades normaux. Prends une pause après une perte.",
+      "insightSurprising": "Étonnamment, tes revenge trades ne sont pas statistiquement pires — mais reste prudent.",
+      "insightSlightlyWorse": "Tes revenge trades performent légèrement moins bien. Surveille les déclencheurs émotionnels."
     },
     "Streak": {
       "title": "Séries de trades",

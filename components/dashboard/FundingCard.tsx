@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { FundingInsight } from "@/lib/api-types";
-import { fmtPnl, fmtPct, fmtCompact, pnlColor } from "@/lib/format";
+import { fmtPnl, fmtPct, fmtCompact, fmtCompactUsd, pnlColor } from "@/lib/format";
 
 interface Props {
   insight: FundingInsight;
@@ -21,12 +21,12 @@ export default function FundingCard({ insight }: Props) {
     if (paymentCount === 0) return t("insightNoFees");
     if (isNetPayer) {
       if (fundingVsNetPnl !== null) {
-        return t("insightPayer", { amount: fmtCompact(-totalPaid), pct: fmtPct(Math.abs(fundingVsNetPnl)) });
+        return t("insightPayer", { amount: fmtCompactUsd(totalPaid), pct: fmtPct(Math.abs(fundingVsNetPnl)) });
       }
-      return t("insightPayerNoPct", { amount: fmtCompact(-totalPaid) });
+      return t("insightPayerNoPct", { amount: fmtCompactUsd(totalPaid) });
     }
     if (isNetReceiver) {
-      return t("insightReceiver", { amount: fmtCompact(totalReceived) });
+      return t("insightReceiver", { amount: fmtCompactUsd(totalReceived) });
     }
     return t("insightNeutral");
   })();

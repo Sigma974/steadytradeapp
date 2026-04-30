@@ -270,7 +270,7 @@ export default function TraderClient({ address, initialData, daysBack: initialDa
             <Link href={homeHref} className="text-lg font-bold tracking-tight text-slate-100 hover:text-slate-300 transition-colors">
               Steady
             </Link>
-            <span className="text-xs text-slate-500 hidden sm:inline">Hyperliquid analytics</span>
+            <span className="text-xs text-slate-500 hidden sm:inline">{t("tagline")}</span>
           </div>
           <LanguageSwitcher />
         </div>
@@ -336,7 +336,7 @@ export default function TraderClient({ address, initialData, daysBack: initialDa
         {error && (
           <div className="text-center py-16 space-y-2">
             <p className="text-red-400 text-sm">{error}</p>
-            <Link href={homeHref} className="text-xs text-slate-500 underline">Back to home</Link>
+            <Link href={homeHref} className="text-xs text-slate-500 underline">{t("backToHome")}</Link>
           </div>
         )}
 

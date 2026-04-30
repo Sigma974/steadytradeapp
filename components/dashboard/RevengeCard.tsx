@@ -8,7 +8,8 @@ interface Props {
   insight: SerializedRevengeInsight;
 }
 
-function WinRateBar({ label, rate }: { label: string; rate: number }) {
+function WinRateBar({ label, rate, barColor }: { label: string; rate: number; barColor?: string }) {
+  const color = barColor ?? (rate >= 0.5 ? "bg-emerald-500" : "bg-red-500");
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-xs text-slate-400">
@@ -17,7 +18,7 @@ function WinRateBar({ label, rate }: { label: string; rate: number }) {
       </div>
       <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
         <div
-          className={`h-full rounded-full ${rate >= 0.5 ? "bg-emerald-500" : "bg-red-500"}`}
+          className={`h-full rounded-full ${color}`}
           style={{ width: `${Math.min(rate * 100, 100)}%` }}
         />
       </div>
@@ -27,8 +28,25 @@ function WinRateBar({ label, rate }: { label: string; rate: number }) {
 
 export default function RevengeCard({ insight }: Props) {
   const t = useTranslations("Cards.Revenge");
-  const top5 = insight.details.slice(0, 5);
+  const top5 = [...insight.details]
+    .sort((a, b) => b.trade.openAt.localeCompare(a.trade.openAt))
+    .slice(0, 5);
   const hasRevenge = insight.revengeCount > 0;
+
+  const diff = insight.normalWinRate - insight.revengeWinRate;
+
+  const revengeBarColor = diff > 0.10
+    ? "bg-red-500"
+    : insight.revengeWinRate >= insight.normalWinRate
+      ? "bg-emerald-500"
+      : "bg-amber-500";
+
+  const insightText = (() => {
+    if (insight.revengeCount < 3) return null;
+    if (diff > 0.10) return t("insightWorse", { diff: Math.round(diff * 100) });
+    if (insight.revengeWinRate >= insight.normalWinRate) return t("insightSurprising");
+    return t("insightSlightlyWorse");
+  })();
 
   return (
     <Card className="bg-slate-900 border-slate-800 h-full">
@@ -56,8 +74,11 @@ export default function RevengeCard({ insight }: Props) {
 
         {hasRevenge && (
           <div className="space-y-2">
-            <WinRateBar label={t("revengeLabel")} rate={insight.revengeWinRate} />
+            <WinRateBar label={t("revengeLabel")} rate={insight.revengeWinRate} barColor={revengeBarColor} />
             <WinRateBar label={t("normalLabel")} rate={insight.normalWinRate} />
+            {insightText && (
+              <p className="text-xs text-slate-400 italic leading-relaxed pt-1">{insightText}</p>
+            )}
             {insight.avgGapSeconds > 0 && (
               <p className="text-xs text-slate-500 pt-1">
                 {t("avgGap", { duration: fmtDuration(Math.round(insight.avgGapSeconds)) })}
