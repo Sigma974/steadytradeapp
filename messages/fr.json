@@ -16,7 +16,7 @@
     "meta": {
       "tradesInfo": "{trades} trades · {fills} fills · récupéré à {time}",
       "viewProfile": "Voir le profil public ↗",
-    "viewTrades": "Tous les trades ↗"
+      "viewTrades": "Tous les trades ↗"
     },
     "emptyState": {
       "hint": "Entrez une adresse Hyperliquid pour analyser ses performances.",
@@ -407,6 +407,32 @@
       "colDelta": "Delta",
       "colEntryExit": "Entrée → Sortie",
       "footerNote": "Buy & hold suppose d'entrer au prix moyen de ton premier trade et de tenir jusqu'à ta dernière sortie, même taille."
+    },
+    "SteadyScore": {
+      "title": "Steady Score",
+      "notEnough": "Pas assez de données — trade encore pour débloquer ton score.",
+      "breakdown": "Décomposition du score",
+      "basedOnPeriod": "Basé sur {trades} trades sur {days}j",
+      "basedOnAll": "Basé sur {trades} trades (tout historique)",
+      "total": "Total",
+      "labels": {
+        "proDiscipline": "Discipline pro",
+        "disciplinedTrader": "Trader discipliné",
+        "mixedSignals": "Signaux mitigés",
+        "disciplineIssues": "Problèmes de discipline",
+        "majorLeaks": "Fuites majeures"
+      },
+      "signals": {
+        "revenge": "Revenge",
+        "sizing": "Sizing",
+        "drawdown": "Drawdown",
+        "winStability": "Stabilité WR",
+        "holdTime": "Hold time",
+        "funding": "Funding",
+        "lsBalance": "Balance L/S",
+        "pnlPos": "PnL"
+      },
+      "philosophy": "Le Steady Score mesure ta discipline, pas ton P&L. Un trader profitable mais peu discipliné peut scorer plus bas qu'un trader légèrement perdant mais discipliné."
     }
   }
 }

@@ -25,6 +25,7 @@ import RecentWRCard from "@/components/dashboard/RecentWRCard";
 import EquityChart from "@/components/dashboard/EquityChart";
 import DrawdownCard from "@/components/dashboard/DrawdownCard";
 import VerdictCard from "@/components/dashboard/VerdictCard";
+import SteadyScoreCard from "@/components/dashboard/SteadyScoreCard";
 
 const HL_EXPLORER = "https://app.hyperliquid.xyz/explorer";
 const MY_ADDRESS_KEY = "steady_my_address";
@@ -364,7 +365,10 @@ export default function TraderClient({ address, initialData, daysBack: initialDa
 
         {data && data.tradeCount > 0 && (
           <div className="space-y-4">
-            <VerdictCard data={data} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <VerdictCard data={data} />
+              <SteadyScoreCard data={data} daysBack={activeDays} />
+            </div>
 
             <StatGrid stats={data.insights.general} />
 
