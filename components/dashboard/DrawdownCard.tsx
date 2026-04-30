@@ -117,7 +117,12 @@ export default function DrawdownCard({ insight }: Props) {
           <Row label={t("recoveryTime")}>
             {maxDrawdown.recoveryDays !== null ? (
               <span className="text-slate-300 font-mono">
-                {t("days", { n: maxDrawdown.recoveryDays })}
+                {(() => {
+                  const d = Math.round(maxDrawdown.recoveryDays!);
+                  if (d < 1) return t("lessThanOneDay");
+                  if (d >= 30) return t("months", { n: Math.round(d / 30) });
+                  return t("days", { n: d });
+                })()}
               </span>
             ) : (
               <span className="text-slate-500 italic">{t("notYetRecovered")}</span>

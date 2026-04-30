@@ -88,7 +88,7 @@ export default function EquityChart({ insight }: Props) {
 
   const allPositive = minE >= 0;
   const allNegative = maxE <= 0;
-  const zeroPct = `${((maxE / range) * 100).toFixed(1)}%`;
+  const zeroPct = `${(((maxE + padding) / (range + 2 * padding)) * 100).toFixed(1)}%`;
 
   const strokeColor = allNegative ? "#ef4444" : "#10b981";
 

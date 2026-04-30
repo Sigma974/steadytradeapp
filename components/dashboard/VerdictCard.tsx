@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import type { SyncData } from "@/lib/api-types";
 import { calculateVerdict, type VerdictType } from "@/lib/insights/verdict";
@@ -41,7 +42,7 @@ export default function VerdictCard({ data }: Props) {
     );
   }
 
-  const verdict = calculateVerdict(data);
+  const verdict = useMemo(() => calculateVerdict(data), [data]);
   if (!verdict) return null;
 
   const s = STYLES[verdict.type];

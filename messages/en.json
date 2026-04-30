@@ -387,6 +387,8 @@
       "recoveryTime": "Recovery time",
       "notYetRecovered": "Not yet recovered",
       "days": "{n} days",
+      "lessThanOneDay": "< 1 day",
+      "months": "~{n} months",
       "insightExcellent": "Excellent risk control",
       "insightModerate": "Significant — typical pro range",
       "insightHigh": "High — review your sizing",
