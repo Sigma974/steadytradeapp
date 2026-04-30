@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
+import SiteHeader from "@/components/SiteHeader";
 import PeriodSelector from "@/components/PeriodSelector";
 import CacheIndicator from "@/components/CacheIndicator";
 import type { SyncData } from "@/lib/api-types";
@@ -27,6 +27,10 @@ import EquityChart from "@/components/dashboard/EquityChart";
 import VerdictCard from "@/components/dashboard/VerdictCard";
 import { fmtCompactNum } from "@/lib/format";
 import Footer from "@/components/Footer";
+import ProfileHintBanner from "@/components/ProfileHintBanner";
+import { useUserProfile } from "@/hooks/use-user-profile";
+import { createSupabaseBrowser } from "@/lib/supabase-browser";
+import { daysToKey } from "@/lib/periods";
 
 export default function Home() {
   const t = useTranslations("HomePage");
@@ -42,6 +46,39 @@ export default function Home() {
   const [fromCache, setFromCache] = useState(false);
   const [cacheAgeMinutes, setCacheAgeMinutes] = useState(0);
   const [lastAddress, setLastAddress] = useState("");
+
+  const userProfile = useUserProfile();
+  const [savingAnalysis, setSavingAnalysis] = useState(false);
+  const [saveToast, setSaveToast] = useState<{ message: string; ok: boolean } | null>(null);
+
+  const matchingWallet = lastAddress && userProfile
+    ? userProfile.wallets.find((w) => w.address.toLowerCase() === lastAddress.toLowerCase()) ?? null
+    : null;
+
+  function toPeriodLabel(days: number | null): string {
+    const key = daysToKey(days);
+    return key === "365d" ? "1y" : key;
+  }
+
+  async function handleSaveAnalysis() {
+    if (!matchingWallet || !userProfile || savingAnalysis || !data) return;
+    setSavingAnalysis(true);
+    try {
+      const supabase = createSupabaseBrowser();
+      const { error } = await supabase.from("saved_analyses").insert({
+        user_id: userProfile.userId,
+        wallet_id: matchingWallet.id,
+        period: toPeriodLabel(activeDays),
+        start_date: activeStart ? new Date(activeStart).toISOString() : null,
+        end_date: activeEnd ? new Date(activeEnd).toISOString() : null,
+      });
+      const msg = error ? t("meta.saveError") : t("meta.analysisSaved");
+      setSaveToast({ message: msg, ok: !error });
+      setTimeout(() => setSaveToast(null), 3000);
+    } finally {
+      setSavingAnalysis(false);
+    }
+  }
 
   async function fetchData(
     addr: string,
@@ -117,17 +154,18 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <header className="border-b border-slate-800 px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <span className="text-lg font-bold tracking-tight text-slate-100">Steady</span>
-            <span className="text-xs text-slate-500 hidden sm:inline">{t("tagline")}</span>
-          </div>
-          <LanguageSwitcher />
+      {saveToast && (
+        <div className={`fixed bottom-5 right-5 z-50 px-4 py-2.5 rounded-lg text-sm font-medium shadow-xl ${
+          saveToast.ok ? "bg-teal-500 text-white" : "bg-red-500/90 text-white"
+        }`}>
+          {saveToast.message}
         </div>
-      </header>
+      )}
+      <SiteHeader tagline={t("tagline")} />
 
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+        <ProfileHintBanner />
+
         {/* Search form */}
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="flex flex-col sm:flex-row gap-2">
@@ -206,13 +244,22 @@ export default function Home() {
                     >
                       {t("meta.viewTrades")}
                     </Link>
+                    {matchingWallet && data && (
+                      <button
+                        onClick={handleSaveAnalysis}
+                        disabled={savingAnalysis}
+                        className="text-xs px-2.5 py-1 rounded-md bg-teal-800/50 hover:bg-teal-700/50 text-teal-300 border border-teal-700/50 transition-colors whitespace-nowrap disabled:opacity-50"
+                      >
+                        {savingAnalysis ? "…" : t("meta.saveAnalysis")}
+                      </button>
+                    )}
                   </>
                 )}
               </div>
             </div>
 
             {/* Verdict */}
-            {data.tradeCount > 0 && <VerdictCard data={data} />}
+            {data.tradeCount > 0 && <VerdictCard data={data} profileType={userProfile?.profileType} />}
 
             {/* Stat cards */}
             <StatGrid stats={data.insights.general} />

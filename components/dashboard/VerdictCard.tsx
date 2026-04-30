@@ -29,10 +29,12 @@ const STYLES: Record<
 
 interface Props {
   data: SyncData;
+  profileType?: string | null;
 }
 
-export default function VerdictCard({ data }: Props) {
+export default function VerdictCard({ data, profileType }: Props) {
   const t = useTranslations("Cards.Verdict");
+  const verdict = useMemo(() => calculateVerdict(data, profileType), [data, profileType]);
 
   if (data.tradeCount < 10) {
     return (
@@ -42,7 +44,6 @@ export default function VerdictCard({ data }: Props) {
     );
   }
 
-  const verdict = useMemo(() => calculateVerdict(data), [data]);
   if (!verdict) return null;
 
   const s = STYLES[verdict.type];

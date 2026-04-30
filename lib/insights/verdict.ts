@@ -22,7 +22,7 @@ export interface Verdict {
 
 const MIN_TRADES = 10;
 
-export function calculateVerdict(data: SyncData): Verdict | null {
+export function calculateVerdict(data: SyncData, profileType?: string | null): Verdict | null {
   const { general, revengeTrades, holdTime, equity, recentWinRate, directionWinRate, funding } =
     data.insights;
 
@@ -42,9 +42,9 @@ export function calculateVerdict(data: SyncData): Verdict | null {
     };
   }
 
-  // 2 — Scalping not working
+  // 2 — Scalping not working (skipped for scalpers — that's their intended style)
   const shortBucket = holdTime.buckets.find((b) => b.maxSeconds === 1800);
-  if (shortBucket && shortBucket.pctOfTrades > 0.6 && shortBucket.totalPnl < 0) {
+  if (profileType !== "scalper" && shortBucket && shortBucket.pctOfTrades > 0.6 && shortBucket.totalPnl < 0) {
     // "long" = any bucket starting at 2h+ (includes 2h–8h, 8h–24h, >24h)
     const hasLongTrades = holdTime.buckets.some((b) => b.minSeconds >= 7200 && b.count > 0);
     const longPnl = holdTime.buckets
@@ -112,9 +112,10 @@ export function calculateVerdict(data: SyncData): Verdict | null {
     };
   }
 
-  // 6 — Funding fees > 5% of absolute PnL
+  // 6 — Funding fees (position traders hold longer, lower threshold)
   const absPnl = Math.abs(general.totalPnl);
-  if (absPnl > 0 && !funding.rateLimited && funding.totalPaid > 0.05 * absPnl) {
+  const fundingThreshold = profileType === "position" ? 0.03 : 0.05;
+  if (absPnl > 0 && !funding.rateLimited && funding.totalPaid > fundingThreshold * absPnl) {
     return {
       type: "info",
       key: "funding",

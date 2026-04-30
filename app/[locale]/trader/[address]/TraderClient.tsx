@@ -5,8 +5,11 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import type { SyncData } from "@/lib/api-types";
 import { fmtPct, fmtCompact, fmtCompactNum, pnlColor } from "@/lib/format";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
+import SiteHeader from "@/components/SiteHeader";
 import PeriodSelector from "@/components/PeriodSelector";
+import { useUserProfile } from "@/hooks/use-user-profile";
+import { createSupabaseBrowser } from "@/lib/supabase-browser";
+import { daysToKey } from "@/lib/periods";
 import CacheIndicator from "@/components/CacheIndicator";
 import type { PeriodChange } from "@/lib/periods";
 import StatGrid from "@/components/dashboard/StatGrid";
@@ -133,6 +136,39 @@ export default function TraderClient({ address, initialData, daysBack: initialDa
   const [fromCache, setFromCache] = useState(false);
   const [cacheAgeMinutes, setCacheAgeMinutes] = useState(0);
   const forceRef = useRef(false);
+
+  const userProfile = useUserProfile();
+  const [savingAnalysis, setSavingAnalysis] = useState(false);
+  const [saveToast, setSaveToast] = useState<{ message: string; ok: boolean } | null>(null);
+
+  const matchingWallet = userProfile
+    ? userProfile.wallets.find((w) => w.address.toLowerCase() === address.toLowerCase()) ?? null
+    : null;
+
+  function toPeriodLabel(days: number | null): string {
+    const key = daysToKey(days);
+    return key === "365d" ? "1y" : key;
+  }
+
+  async function handleSaveAnalysis() {
+    if (!matchingWallet || !userProfile || savingAnalysis || !data) return;
+    setSavingAnalysis(true);
+    try {
+      const supabase = createSupabaseBrowser();
+      const { error } = await supabase.from("saved_analyses").insert({
+        user_id: userProfile.userId,
+        wallet_id: matchingWallet.id,
+        period: toPeriodLabel(activeDays),
+        start_date: activeStart ? new Date(activeStart).toISOString() : null,
+        end_date: activeEnd ? new Date(activeEnd).toISOString() : null,
+      });
+      const msg = error ? t("saveError") : t("analysisSaved");
+      setSaveToast({ message: msg, ok: !error });
+      setTimeout(() => setSaveToast(null), 3000);
+    } finally {
+      setSavingAnalysis(false);
+    }
+  }
 
   const [copied, setCopied] = useState(false);
   const [showCompare, setShowCompare] = useState(false);
@@ -265,17 +301,14 @@ export default function TraderClient({ address, initialData, daysBack: initialDa
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="border-b border-slate-800 px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-3">
-            <Link href={homeHref} className="text-lg font-bold tracking-tight text-slate-100 hover:text-slate-300 transition-colors">
-              Steady
-            </Link>
-            <span className="text-xs text-slate-500 hidden sm:inline">{t("tagline")}</span>
-          </div>
-          <LanguageSwitcher />
+      {saveToast && (
+        <div className={`fixed bottom-5 right-5 z-50 px-4 py-2.5 rounded-lg text-sm font-medium shadow-xl ${
+          saveToast.ok ? "bg-teal-500 text-white" : "bg-red-500/90 text-white"
+        }`}>
+          {saveToast.message}
         </div>
-      </header>
+      )}
+      <SiteHeader tagline={t("tagline")} />
 
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
         {/* Title + action buttons */}
@@ -302,6 +335,15 @@ export default function TraderClient({ address, initialData, daysBack: initialDa
             {myAddress && data && (
               <button onClick={handleCompare} className="text-xs px-3 py-1.5 rounded-lg bg-emerald-800 hover:bg-emerald-700 text-emerald-100 transition-colors border border-emerald-700 font-semibold">
                 {t("compareToMe")}
+              </button>
+            )}
+            {matchingWallet && data && data.tradeCount > 0 && (
+              <button
+                onClick={handleSaveAnalysis}
+                disabled={savingAnalysis}
+                className="text-xs px-3 py-1.5 rounded-lg bg-teal-800/50 hover:bg-teal-700/50 text-teal-300 transition-colors border border-teal-700/50 font-semibold disabled:opacity-50"
+              >
+                {savingAnalysis ? "…" : t("saveAnalysis")}
               </button>
             )}
           </div>
@@ -366,7 +408,7 @@ export default function TraderClient({ address, initialData, daysBack: initialDa
         {data && data.tradeCount > 0 && (
           <div className="space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <VerdictCard data={data} />
+              <VerdictCard data={data} profileType={userProfile?.profileType} />
               <SteadyScoreCard data={data} daysBack={activeDays} />
             </div>
 
