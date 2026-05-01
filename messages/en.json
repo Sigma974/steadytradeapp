@@ -1,4 +1,7 @@
 {
+  "Navigation": {
+    "leaderboard": "Leaderboard"
+  },
   "HomePage": {
     "tagline": "Hyperliquid analytics",
     "form": {

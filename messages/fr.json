@@ -1,4 +1,7 @@
 {
+  "Navigation": {
+    "leaderboard": "Classement"
+  },
   "HomePage": {
     "tagline": "Analytiques Hyperliquid",
     "form": {
