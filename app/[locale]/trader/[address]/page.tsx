@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { getCachedSync } from "@/lib/db-cache";
+import { calculateSteadyScore } from "@/lib/insights/steadyScore";
 import TraderClient from "./TraderClient";
 
 const META_DAYS = 90;
@@ -24,19 +25,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const pnl = insights.general.totalPnl;
     const pnlStr = `${pnl >= 0 ? "+" : ""}$${Math.abs(pnl).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
     const short = abbrev(address);
+    const scoreResult = calculateSteadyScore(cached);
+    const scoreStr = scoreResult ? ` · Steady Score ${scoreResult.score}/100` : "";
 
     return {
       title: `Trader ${short} — ${tradeCount} trades, ${wr}% WR | Steady`,
-      description: `${pnlStr} PnL · ${tradeCount} trades · ${wr}% win rate on Hyperliquid. Analyzed with Steady.`,
+      description: `${pnlStr} PnL · ${tradeCount} trades · ${wr}% win rate on Hyperliquid${scoreStr}. Analyzed with Steady.`,
       openGraph: {
         title: `Trader ${short} | Steady`,
-        description: `${pnlStr} PnL · ${tradeCount} trades · ${wr}% WR`,
+        description: `${pnlStr} PnL · ${tradeCount} trades · ${wr}% WR${scoreStr}`,
         type: "website",
       },
       twitter: {
-        card: "summary",
+        card: "summary_large_image",
         title: `Trader ${short} | Steady`,
-        description: `${pnlStr} PnL · ${tradeCount} trades · ${wr}% WR`,
+        description: `${pnlStr} PnL · ${tradeCount} trades · ${wr}% WR${scoreStr}`,
       },
     };
   }
@@ -44,7 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: "Trader Profile | Steady",
     description: "Hyperliquid trader analytics — no wallet connection required.",
-    twitter: { card: "summary" },
+    twitter: { card: "summary_large_image" },
   };
 }
 
