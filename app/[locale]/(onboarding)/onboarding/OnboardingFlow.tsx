@@ -94,7 +94,7 @@ export default function OnboardingFlow({ username }: Props) {
       });
 
       if (error) {
-        setWalletError(t("invalidAddress"));
+        setWalletError(t("saveError"));
         return;
       }
       setAddedWallet(addr.toLowerCase());

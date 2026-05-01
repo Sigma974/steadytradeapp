@@ -470,6 +470,7 @@
     "labelPlaceholder": "Main wallet",
     "skipWallet": "Skip for now",
     "invalidAddress": "This doesn't look like a valid Hyperliquid wallet address.",
+    "saveError": "Failed to save wallet. Please try again.",
     "step3TitleUser": "You're all set, {name}",
     "step3TitleGeneric": "You're all set, trader",
     "step3Subtitle": "Steady will adapt to your {profile} style.",

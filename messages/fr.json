@@ -470,6 +470,7 @@
     "labelPlaceholder": "Wallet principal",
     "skipWallet": "Passer pour l'instant",
     "invalidAddress": "Cette adresse ne semble pas être un wallet Hyperliquid valide.",
+    "saveError": "Impossible d'enregistrer le wallet. Réessaie.",
     "step3TitleUser": "Tout est prêt, {name}",
     "step3TitleGeneric": "Tout est prêt, trader",
     "step3Subtitle": "Steady va s'adapter à ton style {profile}.",
