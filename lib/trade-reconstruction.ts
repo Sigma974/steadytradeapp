@@ -118,6 +118,16 @@ export function reconstructTrades(fills: Fill[], emitAfter?: Date): Trade[] {
         (queueSide === "long" && signedSize > 0) ||
         (queueSide === "short" && signedSize < 0);
 
+      // ── ORPHAN CLOSE: skip closing fills that have no matching open lot ──
+      // When queue is empty and the fill is a pure close (not a flip, not an
+      // open), the position was opened before our analysis window.  Creating a
+      // phantom lot from this fill would produce spurious trades whose PnL
+      // reflects the delta between the close price and the trader's next entry —
+      // completely unrelated to the actual round-trip.
+      const isPureClose =
+        fill.dir.startsWith("Close") || fill.dir.startsWith("Liquidated");
+      if (isPureClose && queue.length === 0) continue;
+
       // ── CASE A: opening fill — push new lot onto the queue ────────────────
       if (addsToQueue) {
         const side: Side = signedSize > 0 ? "long" : "short";
@@ -496,9 +506,33 @@ function testOrphanClose(): void {
     makeFill({ coin: "SOL", sideRaw: "A", px: 120, sz: 1, timeMs: 2000, fee: 0.06, closedPnl: 20, dir: "Close Long", oid: 3, tid: 3 }),
   ];
   const trades = reconstructTrades(fills);
-  // No matching opening lot → queue is empty → no sub-trade emitted
+  // Pure close with empty queue → immediately skipped, no phantom lot created
   assert(trades.length === 0, `expected 0 trades, got ${trades.length}`);
   console.log("PASS: orphan closing fill silently ignored");
+}
+
+// --- 8b. Orphan close followed by a real open → only real round-trip emitted ---
+//
+// The phantom-trade bug: without the fix the orphan close fill would create a
+// phantom lot.  The subsequent real open fill would then "close" that phantom
+// and emit a spurious sub-trade.  After the fix the orphan is skipped and only
+// the genuine round-trip is recorded.
+function testOrphanCloseThenRealOpen(): void {
+  const fills = [
+    // Orphan close — position was opened before our window
+    makeFill({ coin: "SOL", sideRaw: "A", px: 120, sz: 1, timeMs: 1000, fee: 0.06,  closedPnl: 20, dir: "Close Long", oid: 1, tid: 1 }),
+    // Real opening fill
+    makeFill({ coin: "SOL", sideRaw: "B", px: 100, sz: 1, timeMs: 2000, fee: 0.05,  closedPnl: 0,  dir: "Open Long",  oid: 2, tid: 2 }),
+    // Real closing fill
+    makeFill({ coin: "SOL", sideRaw: "A", px: 110, sz: 1, timeMs: 3000, fee: 0.055, closedPnl: 10, dir: "Close Long", oid: 3, tid: 3 }),
+  ];
+  const trades = reconstructTrades(fills);
+  // Orphan close must be ignored; only the real round-trip emitted
+  assert(trades.length === 1, `expected 1 trade, got ${trades.length}`);
+  assert(near(trades[0].avgEntryPx, 100), "entry from real open");
+  assert(near(trades[0].avgExitPx,  110), "exit from real close");
+  assert(near(trades[0].realizedPnl, 10), "real FIFO PnL");
+  console.log("PASS: orphan close then real open — only real round-trip emitted");
 }
 
 // --- 9. emitAfter filter: warmup fills populate queue but are not emitted ---
@@ -557,7 +591,8 @@ export function runTests(): void {
   testMultiAsset();
   testFeeConservation();
   testOrphanClose();
+  testOrphanCloseThenRealOpen();
   testEmitAfter();
   testComplexFIFO();
-  console.log("\nAll 10 tests passed.");
+  console.log("\nAll 11 tests passed.");
 }
