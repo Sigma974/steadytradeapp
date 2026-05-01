@@ -16,14 +16,6 @@ const SCORE_COLOR: Record<string, string> = {
   majorLeaks:        "#ef4444",
 };
 
-const SCORE_LABEL: Record<string, string> = {
-  proDiscipline:     "Pro discipline",
-  disciplinedTrader: "Disciplined trader",
-  mixedSignals:      "Mixed signals",
-  disciplineIssues:  "Discipline issues",
-  majorLeaks:        "Major leaks",
-};
-
 const VERDICT_TITLE: Record<string, string> = {
   revenge:        "Revenge trading is costing you",
   scalping:       "Quick trades aren't your edge",
@@ -35,6 +27,16 @@ const VERDICT_TITLE: Record<string, string> = {
   success:        "Solid performance",
   neutral:        "Mixed signals",
 };
+
+type BadgeTier = { icon: string; label: string; bg: string; border: string; color: string };
+
+function getBadge(score: number): BadgeTier {
+  if (score >= 90) return { icon: "★", label: "Elite discipline",       bg: "#022c22", border: "#065f46", color: "#34d399" };
+  if (score >= 75) return { icon: "✓", label: "Strong discipline",      bg: "#052e16", border: "#166534", color: "#4ade80" };
+  if (score >= 60) return { icon: "◆", label: "Solid foundation",       bg: "#1a2e05", border: "#3f6212", color: "#a3e635" };
+  if (score >= 40) return { icon: "▲", label: "Room for improvement",   bg: "#431407", border: "#9a3412", color: "#fb923c" };
+  return               { icon: "▲", label: "Plenty of room to grow", bg: "#3b0a0a", border: "#991b1b", color: "#f87171" };
+}
 
 function abbrev(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -139,8 +141,8 @@ export default async function Image({
   const score        = scoreResult?.score    ?? 0;
   const labelKey     = scoreResult?.labelKey ?? "mixedSignals";
   const scoreColor   = SCORE_COLOR[labelKey]  ?? "#94a3b8";
-  const scoreLabel   = SCORE_LABEL[labelKey]  ?? "";
   const verdictTitle = verdict ? (VERDICT_TITLE[verdict.key] ?? "") : "";
+  const badge        = getBadge(score);
 
   const { totalPnl, winRate, totalTrades } = cached.insights.general;
   const pnlStr   = fmtPnl(totalPnl);
@@ -204,6 +206,25 @@ export default async function Image({
             justifyContent: "center",
           }}
         >
+          {/* Badge — always visible, tone and color adapt to score tier */}
+          <div
+            style={{
+              display: "flex",
+              backgroundColor: badge.bg,
+              border: "1px solid " + badge.border,
+              borderRadius: 6,
+              paddingTop: 8,
+              paddingBottom: 8,
+              paddingLeft: 18,
+              paddingRight: 18,
+              marginBottom: 20,
+              fontSize: 20,
+              color: badge.color,
+            }}
+          >
+            {badge.icon + "  " + badge.label}
+          </div>
+
           <div
             style={{
               display: "flex",
@@ -224,18 +245,20 @@ export default async function Image({
               marginTop: 8,
             }}
           >
-            {scoreLabel}
+            Steady Score
           </div>
           {verdictTitle ? (
             <div
               style={{
                 display: "flex",
-                fontSize: 30,
+                fontSize: 26,
                 color: "#ffffff",
                 marginTop: 20,
                 textAlign: "center",
-                maxWidth: 800,
+                maxWidth: 820,
                 lineHeight: 1.3,
+                maxHeight: 70,
+                overflow: "hidden",
               }}
             >
               {verdictTitle}
