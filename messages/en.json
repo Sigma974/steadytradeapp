@@ -423,11 +423,11 @@
       "basedOnAll": "Based on {trades} trades (all time)",
       "total": "Total",
       "labels": {
-        "proDiscipline": "Pro discipline",
-        "disciplinedTrader": "Disciplined trader",
-        "mixedSignals": "Mixed signals",
-        "disciplineIssues": "Discipline issues",
-        "majorLeaks": "Major leaks"
+        "elite": "Elite discipline",
+        "strong": "Strong discipline",
+        "solid": "Solid foundation",
+        "improving": "Room for improvement",
+        "growing": "Plenty of room to grow"
       },
       "signals": {
         "revenge": "Revenge",
@@ -520,6 +520,27 @@
       "generic": "An error occurred. Please try again.",
       "callbackFailed": "The link is expired or invalid. Please request a new one."
     }
+  },
+  "DisciplineIndex": {
+    "metaTitle": "Discipline Index — Top Hyperliquid traders by discipline · Steady",
+    "metaDescription": "Rankings of the most disciplined Hyperliquid traders by Steady Score, updated daily.",
+    "title": "Discipline Index",
+    "subtitle": "Top traders by trading discipline, last 30 days",
+    "updatedDaily": "Updated daily",
+    "lastRefresh": "Last refresh",
+    "refreshToday": "today",
+    "refreshYesterday": "yesterday",
+    "refreshDaysAgo": "{n} days ago",
+    "minRequirement": "Min 30 trades & $1k notional required to appear",
+    "noData": "No rankings available yet. Check back soon.",
+    "colRank": "#",
+    "colTrader": "Trader",
+    "colScore": "Steady Score",
+    "colVerdict": "Verdict",
+    "colPnl": "Net P&L",
+    "colWinRate": "Win Rate",
+    "colTrades": "Trades",
+    "you": "you"
   },
   "SettingsPage": {
     "metaTitle": "Settings — Steady",

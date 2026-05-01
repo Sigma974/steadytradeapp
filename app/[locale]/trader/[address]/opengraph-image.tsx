@@ -2,19 +2,12 @@ import { ImageResponse } from "next/og";
 import { getCachedSync } from "@/lib/db-cache";
 import { calculateSteadyScore } from "@/lib/insights/steadyScore";
 import { calculateVerdict } from "@/lib/insights/verdict";
+import { getScoreTier } from "@/lib/score-tiers";
 
 export const alt = "Trader analytics — Steady";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const revalidate = 3600;
-
-const SCORE_COLOR: Record<string, string> = {
-  proDiscipline:     "#2dd4bf",
-  disciplinedTrader: "#eab308",
-  mixedSignals:      "#f97316",
-  disciplineIssues:  "#ef4444",
-  majorLeaks:        "#ef4444",
-};
 
 const VERDICT_TITLE: Record<string, string> = {
   revenge:        "Revenge trading is costing you",
@@ -27,16 +20,6 @@ const VERDICT_TITLE: Record<string, string> = {
   success:        "Solid performance",
   neutral:        "Mixed signals",
 };
-
-type BadgeTier = { icon: string; label: string; bg: string; border: string; color: string };
-
-function getBadge(score: number): BadgeTier {
-  if (score >= 90) return { icon: "★", label: "Elite discipline",       bg: "#022c22", border: "#065f46", color: "#34d399" };
-  if (score >= 75) return { icon: "✓", label: "Strong discipline",      bg: "#052e16", border: "#166534", color: "#4ade80" };
-  if (score >= 60) return { icon: "◆", label: "Solid foundation",       bg: "#1a2e05", border: "#3f6212", color: "#a3e635" };
-  if (score >= 40) return { icon: "▲", label: "Room for improvement",   bg: "#431407", border: "#9a3412", color: "#fb923c" };
-  return               { icon: "▲", label: "Plenty of room to grow", bg: "#3b0a0a", border: "#991b1b", color: "#f87171" };
-}
 
 function abbrev(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -139,10 +122,9 @@ export default async function Image({
   const verdict     = calculateVerdict(cached, null);
 
   const score        = scoreResult?.score    ?? 0;
-  const labelKey     = scoreResult?.labelKey ?? "mixedSignals";
-  const scoreColor   = SCORE_COLOR[labelKey]  ?? "#94a3b8";
+  const tier         = getScoreTier(score);
+  const scoreColor   = scoreResult ? tier.colorHex : "#94a3b8";
   const verdictTitle = verdict ? (VERDICT_TITLE[verdict.key] ?? "") : "";
-  const badge        = getBadge(score);
 
   const { totalPnl, winRate, totalTrades } = cached.insights.general;
   const pnlStr   = fmtPnl(totalPnl);
@@ -210,8 +192,8 @@ export default async function Image({
           <div
             style={{
               display: "flex",
-              backgroundColor: badge.bg,
-              border: "1px solid " + badge.border,
+              backgroundColor: tier.bgHex,
+              border: "1px solid " + tier.borderHex,
               borderRadius: 6,
               paddingTop: 8,
               paddingBottom: 8,
@@ -219,10 +201,10 @@ export default async function Image({
               paddingRight: 18,
               marginBottom: 20,
               fontSize: 20,
-              color: badge.color,
+              color: tier.colorHex,
             }}
           >
-            {badge.icon + "  " + badge.label}
+            {tier.icon + "  " + tier.labelEn}
           </div>
 
           <div

@@ -9,54 +9,11 @@ import {
   type ScoreSignal,
   type SignalKey,
 } from "@/lib/insights/steadyScore";
+import { getScoreTier } from "@/lib/score-tiers";
 
 interface Props {
   data: SyncData;
   daysBack: number | null;
-}
-
-interface Colors {
-  text: string;
-  bar: string;
-  card: string;
-  philosophyBg: string;
-}
-
-function scoreColors(score: number): Colors {
-  if (score >= 80)
-    return {
-      text: "text-emerald-400",
-      bar: "bg-emerald-500",
-      card: "border-emerald-900/40",
-      philosophyBg: "bg-emerald-950/40 border-emerald-900/30",
-    };
-  if (score >= 65)
-    return {
-      text: "text-green-300",
-      bar: "bg-green-400",
-      card: "border-green-900/30",
-      philosophyBg: "bg-green-950/40 border-green-900/30",
-    };
-  if (score >= 50)
-    return {
-      text: "text-yellow-400",
-      bar: "bg-yellow-500",
-      card: "border-yellow-900/40",
-      philosophyBg: "bg-yellow-950/40 border-yellow-900/30",
-    };
-  if (score >= 35)
-    return {
-      text: "text-orange-400",
-      bar: "bg-orange-500",
-      card: "border-orange-900/40",
-      philosophyBg: "bg-orange-950/40 border-orange-900/30",
-    };
-  return {
-    text: "text-red-400",
-    bar: "bg-red-500",
-    card: "border-red-900/40",
-    philosophyBg: "bg-red-950/40 border-red-900/30",
-  };
 }
 
 function SignalRow({
@@ -118,7 +75,7 @@ export default function SteadyScoreCard({ data, daysBack }: Props) {
     );
   }
 
-  const colors = scoreColors(result.score);
+  const tier = getScoreTier(result.score);
   const showBreakdown = breakdownOpen || breakdownHovered;
   const labelKey = result.labelKey as ScoreLabelKey;
 
@@ -148,7 +105,7 @@ export default function SteadyScoreCard({ data, daysBack }: Props) {
 
   return (
     <div
-      className={`rounded-xl border bg-slate-900 overflow-hidden flex flex-col ${colors.card}`}
+      className={`rounded-xl border bg-slate-900 overflow-hidden flex flex-col ${tier.tailwindCard}`}
       onTouchStart={handleTouchStart}
       onMouseEnter={handleCardMouseEnter}
       onMouseLeave={handleCardMouseLeave}
@@ -167,7 +124,7 @@ export default function SteadyScoreCard({ data, daysBack }: Props) {
 
         {/* Score number */}
         <div className="flex items-baseline gap-1 mb-3">
-          <span className={`text-5xl font-mono font-bold leading-none ${colors.text}`}>
+          <span className={`text-5xl font-mono font-bold leading-none ${tier.tailwindText}`}>
             {result.score}
           </span>
           <span className="text-slate-500 text-lg font-mono">/100</span>
@@ -176,7 +133,7 @@ export default function SteadyScoreCard({ data, daysBack }: Props) {
         {/* Progress bar */}
         <div className="h-2 bg-slate-800 rounded-full overflow-hidden mb-3">
           <div
-            className={`h-full rounded-full transition-all duration-300 ${colors.bar}`}
+            className={`h-full rounded-full transition-all duration-300 ${tier.tailwindBar}`}
             style={{ width: `${result.score}%` }}
           />
         </div>
@@ -187,14 +144,14 @@ export default function SteadyScoreCard({ data, daysBack }: Props) {
           onMouseLeave={handleLabelMouseLeave}
           onClick={(e) => e.stopPropagation()}
         >
-          <p className={`text-sm font-semibold cursor-help ${colors.text}`}>
+          <p className={`text-sm font-semibold cursor-help ${tier.tailwindText}`}>
             {t(`labels.${labelKey}` as Parameters<typeof t>[0])}
             <span className="ml-1 text-slate-600 text-xs select-none">ⓘ</span>
           </p>
 
           {philosophyVisible && (
             <div
-              className={`mt-2 rounded-lg border px-3 py-2 text-xs text-slate-400 leading-relaxed ${colors.philosophyBg}`}
+              className={`mt-2 rounded-lg border px-3 py-2 text-xs text-slate-400 leading-relaxed ${tier.tailwindPhilosophyBg}`}
             >
               {t("philosophy")}
             </div>
@@ -216,11 +173,11 @@ export default function SteadyScoreCard({ data, daysBack }: Props) {
             {t("breakdown")}
           </p>
           {result.signals.map((sig) => (
-            <SignalRow key={sig.key} signal={sig} barColor={colors.bar} t={t} />
+            <SignalRow key={sig.key} signal={sig} barColor={tier.tailwindBar} t={t} />
           ))}
           <div className="pt-2 border-t border-slate-800 flex justify-between text-xs font-mono">
             <span className="text-slate-500">{t("total")}</span>
-            <span className={`font-bold ${colors.text}`}>{result.score}/100</span>
+            <span className={`font-bold ${tier.tailwindText}`}>{result.score}/100</span>
           </div>
         </div>
       )}

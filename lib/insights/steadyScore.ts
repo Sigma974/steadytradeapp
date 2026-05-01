@@ -1,11 +1,9 @@
 import type { SyncData } from "@/lib/api-types";
+import { getScoreTier } from "@/lib/score-tiers";
+import type { ScoreTierKey } from "@/lib/score-tiers";
 
-export type ScoreLabelKey =
-  | "proDiscipline"
-  | "disciplinedTrader"
-  | "mixedSignals"
-  | "disciplineIssues"
-  | "majorLeaks";
+// Backward-compat alias — consumers importing ScoreLabelKey continue to work.
+export type ScoreLabelKey = ScoreTierKey;
 
 export type SignalKey =
   | "revenge"
@@ -132,11 +130,7 @@ function pnlSignal(netPnl: number, totalVolume: number): number {
 }
 
 function labelForScore(score: number): ScoreLabelKey {
-  if (score >= 80) return "proDiscipline";
-  if (score >= 65) return "disciplinedTrader";
-  if (score >= 50) return "mixedSignals";
-  if (score >= 35) return "disciplineIssues";
-  return "majorLeaks";
+  return getScoreTier(score).key;
 }
 
 export function calculateSteadyScore(data: SyncData): SteadyScoreResult | null {
@@ -392,24 +386,17 @@ function testNotEnoughTrades(): void {
 }
 
 function testLabelThresholds(): void {
-  const make = (score: number) => {
-    // find a revengeRate that gives exactly `score` when all other signals are neutral(60)
-    // This is hard to engineer exactly, so just verify the label function
-    const labelKey = score >= 80 ? "proDiscipline"
-      : score >= 65 ? "disciplinedTrader"
-      : score >= 50 ? "mixedSignals"
-      : score >= 35 ? "disciplineIssues"
-      : "majorLeaks";
-    return labelKey;
-  };
-  assert(make(80) === "proDiscipline", "80=pro");
-  assert(make(79) === "disciplinedTrader", "79=disciplined");
-  assert(make(65) === "disciplinedTrader", "65=disciplined");
-  assert(make(64) === "mixedSignals", "64=mixed");
-  assert(make(50) === "mixedSignals", "50=mixed");
-  assert(make(49) === "disciplineIssues", "49=issues");
-  assert(make(35) === "disciplineIssues", "35=issues");
-  assert(make(34) === "majorLeaks", "34=leaks");
+  const k = (score: number) => getScoreTier(score).key;
+  assert(k(100) === "elite",     "100=elite");
+  assert(k(90)  === "elite",     "90=elite");
+  assert(k(89)  === "strong",    "89=strong");
+  assert(k(75)  === "strong",    "75=strong");
+  assert(k(74)  === "solid",     "74=solid");
+  assert(k(60)  === "solid",     "60=solid");
+  assert(k(59)  === "improving", "59=improving");
+  assert(k(40)  === "improving", "40=improving");
+  assert(k(39)  === "growing",   "39=growing");
+  assert(k(0)   === "growing",   "0=growing");
   console.log("PASS: label thresholds");
 }
 
