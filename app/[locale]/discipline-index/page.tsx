@@ -13,6 +13,44 @@ type Props = { params: Promise<{ locale: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "DisciplineIndex" });
+
+  // Lightweight query for enriched twitter description
+  let topScore: number | null = null;
+  let totalRanked = 0;
+  try {
+    const { data: latest } = await db
+      .from("leaderboard_snapshots")
+      .select("snapshot_date")
+      .order("snapshot_date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (latest) {
+      const [topResult, countResult] = await Promise.all([
+        db
+          .from("leaderboard_snapshots")
+          .select("steady_score")
+          .eq("snapshot_date", latest.snapshot_date)
+          .eq("rank", 1)
+          .maybeSingle(),
+        db
+          .from("leaderboard_snapshots")
+          .select("rank", { count: "exact", head: true })
+          .eq("snapshot_date", latest.snapshot_date),
+      ]);
+      topScore = topResult.data?.steady_score ?? null;
+      totalRanked = countResult.count ?? 0;
+    }
+  } catch {
+    // Non-critical — fall back to static description
+  }
+
+  const twitterTitle = "Steady Discipline Index — Hyperliquid Leaderboard";
+  const twitterDesc =
+    topScore !== null
+      ? `The honest leaderboard for Hyperliquid traders. Top trader: ${topScore}/100 · ${totalRanked} ranked, updated daily.`
+      : t("metaDescription");
+
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
@@ -23,8 +61,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: t("metaTitle"),
-      description: t("metaDescription"),
+      title: twitterTitle,
+      description: twitterDesc,
     },
   };
 }

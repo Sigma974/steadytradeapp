@@ -5,7 +5,7 @@ import { calculateSteadyScore } from "@/lib/insights/steadyScore";
 import { PERIODS, DEFAULT_DAYS } from "@/lib/periods";
 import TraderClient from "./TraderClient";
 
-const META_DAYS = 90;
+const META_DAYS = DEFAULT_DAYS;
 
 type Props = {
   params: Promise<{ locale: string; address: string }>;

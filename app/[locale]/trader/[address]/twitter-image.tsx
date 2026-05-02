@@ -3,6 +3,7 @@ import { getCachedSync } from "@/lib/db-cache";
 import { calculateSteadyScore } from "@/lib/insights/steadyScore";
 import { calculateVerdict } from "@/lib/insights/verdict";
 import { getScoreTier } from "@/lib/score-tiers";
+import { DEFAULT_DAYS } from "@/lib/periods";
 
 export const alt = "Trader analytics — Steady";
 export const size = { width: 1200, height: 630 };
@@ -40,7 +41,7 @@ export default async function Image({
   const [fontBold, fontRegular, cached] = await Promise.all([
     fetch("https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-700-normal.woff").then((r) => r.arrayBuffer()),
     fetch("https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-400-normal.woff").then((r) => r.arrayBuffer()),
-    getCachedSync(address, 90),
+    getCachedSync(address, DEFAULT_DAYS),
   ]);
 
   const fonts = [
