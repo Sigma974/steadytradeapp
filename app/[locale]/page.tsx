@@ -56,8 +56,7 @@ export default function Home() {
     : null;
 
   function toPeriodLabel(days: number | null): string {
-    const key = daysToKey(days);
-    return key === "365d" ? "1y" : key;
+    return daysToKey(days);
   }
 
   async function handleSaveAnalysis() {

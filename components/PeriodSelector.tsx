@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { PERIODS, daysToKey, type PeriodChange, type PeriodKey } from "@/lib/periods";
+import { PERIODS, DEFAULT_DAYS, daysToKey, type PeriodChange, type PeriodKey } from "@/lib/periods";
 
 interface Props {
   daysBack: number | null;
@@ -20,21 +20,37 @@ function todayStr(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function oneYearAgoStr(): string {
-  return new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-}
+const MIN_DATE = "2022-01-01";
 
 export default function PeriodSelector({ daysBack, startTime, endTime, onChange, disabled }: Props) {
   const t = useTranslations("Period");
   const activeKey: PeriodKey = daysToKey(daysBack);
-  const showCustomForm = activeKey === "custom";
+
+  const [customMode, setCustomMode] = useState(() => activeKey === "custom");
+  // Captures the last predefined period so Cancel can restore it
+  const [prevDays, setPrevDays] = useState<number>(() =>
+    activeKey !== "custom" ? (daysBack ?? DEFAULT_DAYS) : DEFAULT_DAYS
+  );
+  const showCustomForm = customMode || activeKey === "custom";
 
   const [start, setStart] = useState(() => startTime ? toDateStr(startTime) : "");
   const [end, setEnd] = useState(() => endTime ? toDateStr(endTime) : "");
   const [dateError, setDateError] = useState("");
 
+  function enterCustomMode() {
+    if (daysBack !== null) setPrevDays(daysBack);
+    setCustomMode(true);
+  }
+
+  function handleCancel() {
+    setCustomMode(false);
+    setStart(""); setEnd(""); setDateError("");
+    onChange({ daysBack: prevDays });
+  }
+
   function handlePredefined(days: number) {
     if (disabled) return;
+    setCustomMode(false);
     setStart(""); setEnd(""); setDateError("");
     onChange({ daysBack: days });
   }
@@ -43,9 +59,10 @@ export default function PeriodSelector({ daysBack, startTime, endTime, onChange,
     if (disabled) return;
     const val = e.target.value as PeriodKey;
     if (val === "custom") {
-      // Show the date form — don't fire onChange until Apply is clicked
+      enterCustomMode();
       return;
     }
+    setCustomMode(false);
     const found = PERIODS.find((p) => p.key === val);
     if (found) {
       setStart(""); setEnd(""); setDateError("");
@@ -63,7 +80,7 @@ export default function PeriodSelector({ daysBack, startTime, endTime, onChange,
   }
 
   const today = todayStr();
-  const minDate = oneYearAgoStr();
+  const minDate = MIN_DATE;
 
   const pillBase = "text-xs px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap";
   const pillActive = "bg-slate-700 border-slate-500 text-slate-100";
@@ -71,7 +88,7 @@ export default function PeriodSelector({ daysBack, startTime, endTime, onChange,
   const pillDisabled = "opacity-40 cursor-not-allowed";
 
   // Mobile: native select
-  const selectValue = activeKey === "custom" ? "custom" : (activeKey as string);
+  const selectValue = (customMode || activeKey === "custom") ? "custom" : (activeKey as string);
 
   return (
     <div className="space-y-2">
@@ -103,9 +120,9 @@ export default function PeriodSelector({ daysBack, startTime, endTime, onChange,
         ))}
         <button
           type="button"
-          onClick={() => { if (!disabled) onChange({ startTime: 0, endTime: 0 }); }}
+          onClick={() => { if (!disabled) enterCustomMode(); }}
           disabled={disabled}
-          className={`${pillBase} ${activeKey === "custom" ? pillActive : pillInactive} ${disabled ? pillDisabled : ""}`}
+          className={`${pillBase} ${customMode || activeKey === "custom" ? pillActive : pillInactive} ${disabled ? pillDisabled : ""}`}
         >
           {t("custom")}
         </button>
@@ -145,6 +162,13 @@ export default function PeriodSelector({ daysBack, startTime, endTime, onChange,
             className="h-8 px-3 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-100 text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {t("apply")}
+          </button>
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="h-8 px-3 rounded-md border border-slate-700 hover:border-slate-600 text-slate-400 hover:text-slate-200 text-xs font-medium transition-colors"
+          >
+            {t("cancel")}
           </button>
           {dateError && <p className="text-xs text-red-400 w-full">{dateError}</p>}
         </div>

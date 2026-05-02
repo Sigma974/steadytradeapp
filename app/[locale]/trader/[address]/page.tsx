@@ -2,13 +2,19 @@ import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { getCachedSync } from "@/lib/db-cache";
 import { calculateSteadyScore } from "@/lib/insights/steadyScore";
+import { PERIODS, DEFAULT_DAYS } from "@/lib/periods";
 import TraderClient from "./TraderClient";
 
 const META_DAYS = 90;
 
 type Props = {
   params: Promise<{ locale: string; address: string }>;
-  searchParams: Promise<{ days?: string; start?: string; end?: string }>;
+  searchParams: Promise<{
+    // New format
+    period?: string; from?: string; to?: string;
+    // Backward compat
+    days?: string; start?: string; end?: string;
+  }>;
 };
 
 function abbrev(addr: string) {
@@ -65,17 +71,39 @@ export default async function TraderPage({ params, searchParams }: Props) {
     );
   }
 
-  let initialDays: number | null;
+  let initialDays: number | null = DEFAULT_DAYS;
   let initialStart: number | undefined;
   let initialEnd: number | undefined;
 
-  if (sp.start && sp.end) {
-    initialDays = null;
-    initialStart = parseInt(sp.start, 10) || undefined;
-    initialEnd = parseInt(sp.end, 10) || undefined;
-  } else {
-    const parsed = sp.days ? parseInt(sp.days, 10) : 90;
-    initialDays = isNaN(parsed) || parsed <= 0 ? 90 : parsed;
+  if (sp.period) {
+    if (sp.period === "custom" && sp.from && sp.to) {
+      // ?period=custom&from=2024-01-15&to=2024-03-20
+      const s = new Date(sp.from + "T00:00:00Z").getTime();
+      const e = new Date(sp.to + "T23:59:59Z").getTime();
+      if (!isNaN(s) && !isNaN(e) && e > s) {
+        initialDays = null;
+        initialStart = s;
+        initialEnd = e;
+      }
+      // else: invalid dates → fall through to default
+    } else {
+      // ?period=30d, ?period=all, etc. — unknown key falls back to default
+      const found = PERIODS.find((p) => p.key === sp.period);
+      initialDays = found ? found.daysBack : DEFAULT_DAYS;
+    }
+  } else if (sp.start && sp.end) {
+    // Backward compat: old ?start=<ms>&end=<ms> format
+    const s = parseInt(sp.start, 10);
+    const e = parseInt(sp.end, 10);
+    if (!isNaN(s) && !isNaN(e) && e > s) {
+      initialDays = null;
+      initialStart = s;
+      initialEnd = e;
+    }
+  } else if (sp.days) {
+    // Backward compat: old ?days=N format
+    const parsed = parseInt(sp.days, 10);
+    initialDays = isNaN(parsed) || parsed <= 0 ? DEFAULT_DAYS : parsed;
   }
 
   const initialData = initialDays !== null ? await getCachedSync(address, initialDays) : null;

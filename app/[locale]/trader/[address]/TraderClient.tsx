@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import type { SyncData } from "@/lib/api-types";
@@ -9,7 +9,7 @@ import SiteHeader from "@/components/SiteHeader";
 import PeriodSelector from "@/components/PeriodSelector";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { createSupabaseBrowser } from "@/lib/supabase-browser";
-import { daysToKey } from "@/lib/periods";
+import { daysToKey, PERIODS } from "@/lib/periods";
 import CacheIndicator from "@/components/CacheIndicator";
 import type { PeriodChange } from "@/lib/periods";
 import StatGrid from "@/components/dashboard/StatGrid";
@@ -32,6 +32,28 @@ import SteadyScoreCard from "@/components/dashboard/SteadyScoreCard";
 
 const HL_EXPLORER = "https://app.hyperliquid.xyz/explorer";
 const MY_ADDRESS_KEY = "steady_my_address";
+const PERIOD_STORAGE_KEY = "steady_period";
+
+type StoredPeriod =
+  | { type: "days"; days: number }
+  | { type: "custom"; from: string; to: string };
+
+function savePeriodToStorage(value: StoredPeriod): void {
+  try {
+    localStorage.setItem(PERIOD_STORAGE_KEY, JSON.stringify(value));
+  } catch {}
+}
+
+function periodToUrl(daysBack: number): string {
+  const key = daysToKey(daysBack);
+  return `?period=${key}`;
+}
+
+function customToUrl(startMs: number, endMs: number): string {
+  const from = new Date(startMs).toISOString().slice(0, 10);
+  const to = new Date(endMs).toISOString().slice(0, 10);
+  return `?period=custom&from=${from}&to=${to}`;
+}
 
 function abbrev(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -136,6 +158,8 @@ export default function TraderClient({ address, initialData, daysBack: initialDa
   const [fromCache, setFromCache] = useState(false);
   const [cacheAgeMinutes, setCacheAgeMinutes] = useState(0);
   const forceRef = useRef(false);
+  // Captured once so the localStorage effect can compare without a dep warning
+  const initialDaysRef = useRef(initialDays);
 
   const userProfile = useUserProfile();
   const [savingAnalysis, setSavingAnalysis] = useState(false);
@@ -146,8 +170,7 @@ export default function TraderClient({ address, initialData, daysBack: initialDa
     : null;
 
   function toPeriodLabel(days: number | null): string {
-    const key = daysToKey(days);
-    return key === "365d" ? "1y" : key;
+    return daysToKey(days);
   }
 
   async function handleSaveAnalysis() {
@@ -224,26 +247,64 @@ export default function TraderClient({ address, initialData, daysBack: initialDa
     } catch {}
   }, [address]);
 
-  function handlePeriodChange(change: PeriodChange) {
+  // Apply stored period on mount — only when no explicit period is in the URL.
+  // Hierarchy: URL (server-parsed) > localStorage > default.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("period") || params.has("days") || params.has("start")) return;
+
+    try {
+      const raw = localStorage.getItem(PERIOD_STORAGE_KEY);
+      if (!raw) return;
+      const stored = JSON.parse(raw) as StoredPeriod;
+
+      if (stored.type === "days") {
+        const found = PERIODS.find((p) => p.daysBack === stored.days);
+        // Skip if it's the same as the server-rendered default (avoids an unnecessary refetch)
+        if (!found || stored.days === initialDaysRef.current) return;
+        setActiveDays(stored.days);
+        setData(null);
+        window.history.replaceState({}, "", periodToUrl(stored.days));
+      } else if (stored.type === "custom") {
+        const s = new Date(stored.from + "T00:00:00Z").getTime();
+        const e = new Date(stored.to + "T23:59:59Z").getTime();
+        if (isNaN(s) || isNaN(e) || e <= s) return;
+        setActiveDays(null);
+        setActiveStart(s);
+        setActiveEnd(e);
+        setData(null);
+        window.history.replaceState({}, "", customToUrl(s, e));
+      }
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handlePeriodChange = useCallback((change: PeriodChange) => {
     if (change.daysBack !== undefined) {
       setActiveDays(change.daysBack);
       setActiveStart(undefined);
       setActiveEnd(undefined);
-      window.history.replaceState({}, "", `?days=${change.daysBack}`);
+      window.history.replaceState({}, "", periodToUrl(change.daysBack));
+      savePeriodToStorage({ type: "days", days: change.daysBack });
     } else {
       setActiveDays(null);
       const start = change.startTime || undefined;
       const end = change.endTime || undefined;
       setActiveStart(start);
       setActiveEnd(end);
-      if (!start || !end) return; // switched to custom mode, waiting for date input
-      window.history.replaceState({}, "", `?start=${start}&end=${end}`);
+      if (!start || !end) return; // transitioning to custom mode — wait for Apply
+      window.history.replaceState({}, "", customToUrl(start, end));
+      savePeriodToStorage({
+        type: "custom",
+        from: new Date(start).toISOString().slice(0, 10),
+        to: new Date(end).toISOString().slice(0, 10),
+      });
     }
     setData(null);
     setError(null);
     setMyData(null);
     setShowCompare(false);
-  }
+  }, []);
 
   function handleRefresh() {
     forceRef.current = true;
@@ -386,7 +447,11 @@ export default function TraderClient({ address, initialData, daysBack: initialDa
         {data && data.tradeCount === 0 && (
           <div className="text-center py-16 space-y-2">
             <p className="text-slate-400 text-sm">
-              {activeDays !== null ? t("noTrades", { n: activeDays }) : t("noTradesCustom")}
+              {activeDays === null
+                ? t("noTradesCustom")
+                : daysToKey(activeDays) === "all"
+                ? t("noTradesAll")
+                : t("noTrades", { n: activeDays })}
             </p>
             <p className="text-slate-600 text-xs">{t("noTradesSub")}</p>
           </div>
