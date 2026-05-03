@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import type { SyncData } from "@/lib/api-types";
-import { fmtPct, fmtCompact, fmtCompactNum, fmtFixed, pnlColor } from "@/lib/format";
+import { fmtPct, fmtCompact, fmtCompactNum, fmtCompactUsd, fmtFixed, fmtDuration, pnlColor } from "@/lib/format";
 import SiteHeader from "@/components/SiteHeader";
 import PeriodSelector from "@/components/PeriodSelector";
 import { Skeleton } from "@/components/ui/skeleton";
+import { calculateSteadyScore } from "@/lib/insights/steadyScore";
+import { getScoreTier } from "@/lib/score-tiers";
 import type { PeriodChange } from "@/lib/periods";
 
 function abbrev(addr: string) {
@@ -30,6 +32,56 @@ async function fetchWallet(
   const json = await res.json();
   if (!res.ok) throw new Error(json.error ?? "Failed to load trader data.");
   return json as SyncData;
+}
+
+// ---------------------------------------------------------------------------
+// Winner logic
+// ---------------------------------------------------------------------------
+
+type MetricKey = "score" | "winRate" | "netPnl" | "profitFactor" | "maxDrawdown";
+type Winner = 1 | 2 | null;
+type Winners = Record<MetricKey, Winner>;
+
+function extractNums(data: SyncData) {
+  const score = calculateSteadyScore(data)?.score ?? null;
+  const g = data.insights.general;
+  const pf = isFinite(g.profitFactor) && g.winners > 0 ? g.profitFactor : null;
+  const maxDrawdownPct = data.insights.equity.maxDrawdown?.pct ?? null;
+  return { score, winRate: g.winRate, netPnl: g.totalPnl, profitFactor: pf, maxDrawdownPct };
+}
+
+function computeWinners(
+  n1: ReturnType<typeof extractNums>,
+  n2: ReturnType<typeof extractNums>,
+): Winners {
+  const TIE_THRESHOLD = 0.01;
+
+  function higherWins(v1: number | null, v2: number | null): Winner {
+    if (v1 == null || v2 == null) return null;
+    const max = Math.max(Math.abs(v1), Math.abs(v2));
+    if (max === 0) return null;
+    if (Math.abs(v1 - v2) / max < TIE_THRESHOLD) return null;
+    return v1 > v2 ? 1 : 2;
+  }
+
+  function lowerWins(v1: number | null, v2: number | null): Winner {
+    // null means no drawdown at all — that wallet wins outright
+    if (v1 == null && v2 == null) return null;
+    if (v1 == null) return 1;
+    if (v2 == null) return 2;
+    const max = Math.max(Math.abs(v1), Math.abs(v2));
+    if (max === 0) return null;
+    if (Math.abs(v1 - v2) / max < TIE_THRESHOLD) return null;
+    return v1 < v2 ? 1 : 2;
+  }
+
+  return {
+    score: higherWins(n1.score, n2.score),
+    winRate: higherWins(n1.winRate, n2.winRate),
+    netPnl: higherWins(n1.netPnl, n2.netPnl),
+    profitFactor: higherWins(n1.profitFactor, n2.profitFactor),
+    maxDrawdown: lowerWins(n1.maxDrawdownPct, n2.maxDrawdownPct),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -71,41 +123,67 @@ function ColumnError({ address, message }: { address: string; message: string })
   );
 }
 
-function ColumnStats({ data }: { data: SyncData }) {
-  const g = data.insights.general;
-  const rr = data.insights.rr;
-  const eq = data.insights.equity;
+type RowDef = {
+  key: MetricKey | null;
+  label: string;
+  value: string;
+  cls: string;
+};
 
-  const rows: { label: string; value: string; cls: string }[] = [
+function ColumnStats({
+  data,
+  side,
+  winners,
+}: {
+  data: SyncData;
+  side: 1 | 2;
+  winners: Winners | null;
+}) {
+  const g = data.insights.general;
+  const eq = data.insights.equity;
+  const scoreResult = useMemo(() => calculateSteadyScore(data), [data]);
+
+  const rows: RowDef[] = [
     {
+      key: "score",
+      label: "Score",
+      value: scoreResult ? `${scoreResult.score}/100` : "—",
+      cls: scoreResult ? getScoreTier(scoreResult.score).tailwindText : "text-slate-500",
+    },
+    {
+      key: "winRate",
       label: "Win Rate",
       value: fmtPct(g.winRate),
       cls: pnlColor(g.winRate - 0.5),
     },
     {
+      key: "netPnl",
       label: "Net PnL",
       value: fmtCompact(g.totalPnl),
       cls: pnlColor(g.totalPnl),
     },
     {
-      label: "Trades",
-      value: fmtCompactNum(data.tradeCount),
-      cls: "text-slate-200",
-    },
-    {
+      key: "profitFactor",
       label: "Profit Factor",
-      value: g.profitFactor === Infinity ? "∞" : fmtFixed(g.profitFactor, 2),
-      cls: pnlColor(g.profitFactor - 1),
+      value: g.profitFactor === Infinity ? "∞" : g.winners === 0 ? "—" : fmtFixed(g.profitFactor, 2),
+      cls: isFinite(g.profitFactor) && g.winners > 0 ? pnlColor(g.profitFactor - 1) : "text-slate-400",
     },
     {
-      label: "Avg R/R",
-      value: fmtFixed(rr.realizedRR, 2, "R"),
-      cls: pnlColor(rr.realizedRR != null ? rr.realizedRR - 1 : null),
-    },
-    {
+      key: "maxDrawdown",
       label: "Max Drawdown",
-      value: eq.maxDrawdown ? `-${fmtPct(eq.maxDrawdown.pct)}` : "—",
+      // pct can exceed 1 (100%) when the PnL peak is tiny vs the losses — show USD in that case
+      value: eq.maxDrawdown
+        ? eq.maxDrawdown.pct <= 1
+          ? `-${fmtPct(eq.maxDrawdown.pct)}`
+          : `-${fmtCompactUsd(eq.maxDrawdown.amountUsd)}`
+        : "—",
       cls: eq.maxDrawdown ? "text-red-400" : "text-slate-500",
+    },
+    {
+      key: null,
+      label: "Avg Hold",
+      value: fmtDuration(g.avgDurationSeconds),
+      cls: "text-slate-200",
     },
   ];
 
@@ -120,12 +198,32 @@ function ColumnStats({ data }: { data: SyncData }) {
         </p>
       </div>
       <div className="divide-y divide-slate-800/60">
-        {rows.map((row) => (
-          <div key={row.label} className="flex items-center justify-between px-4 py-2.5 text-xs">
-            <span className="text-slate-500">{row.label}</span>
-            <span className={`font-mono font-semibold ${row.cls}`}>{row.value}</span>
-          </div>
-        ))}
+        {rows.map((row) => {
+          const winner = row.key !== null ? (winners?.[row.key] ?? null) : null;
+          const isWinner = winner === side;
+          const isLoser = winner !== null && winner !== side;
+
+          return (
+            <div
+              key={row.label}
+              className={`relative flex items-center justify-between px-4 py-2.5 text-xs ${
+                isWinner ? "bg-emerald-950/30" : ""
+              }`}
+            >
+              <div
+                className={`absolute left-0 top-0 bottom-0 w-0.5 ${
+                  isWinner ? "bg-emerald-500/60" : "bg-transparent"
+                }`}
+              />
+              <span className="text-slate-500">{row.label}</span>
+              <span
+                className={`font-mono font-semibold ${isLoser ? "text-slate-500" : row.cls}`}
+              >
+                {row.value}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -136,16 +234,20 @@ function WalletColumn({
   data,
   loading,
   error,
+  side,
+  winners,
 }: {
   address: string;
   data: SyncData | null;
   loading: boolean;
   error: string | null;
+  side: 1 | 2;
+  winners: Winners | null;
 }) {
   if (loading) return <ColumnSkeleton />;
   if (error) return <ColumnError address={address} message={error} />;
   if (!data || data.tradeCount === 0) return <ColumnEmpty address={address} />;
-  return <ColumnStats data={data} />;
+  return <ColumnStats data={data} side={side} winners={winners} />;
 }
 
 // ---------------------------------------------------------------------------
@@ -227,6 +329,11 @@ export default function VsClient({
     setLoading2(true);
   }, []);
 
+  const winners = useMemo((): Winners | null => {
+    if (!data1 || !data2) return null;
+    return computeWinners(extractNums(data1), extractNums(data2));
+  }, [data1, data2]);
+
   const bothLoading = loading1 && loading2;
 
   return (
@@ -254,12 +361,16 @@ export default function VsClient({
             data={data1}
             loading={loading1}
             error={error1}
+            side={1}
+            winners={winners}
           />
           <WalletColumn
             address={address2}
             data={data2}
             loading={loading2}
             error={error2}
+            side={2}
+            winners={winners}
           />
         </div>
       </main>

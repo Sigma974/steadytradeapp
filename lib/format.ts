@@ -58,12 +58,15 @@ export function fmtPct(n: number | null | undefined, decimals = 1): string {
 
 export function fmtDuration(seconds: number | null | undefined): string {
   if (seconds == null || !isFinite(seconds)) return DASH;
-  if (seconds < 60) return `${seconds}s`;
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  if (seconds < 3600) return `${m}m ${s}s`;
+  const sec = Math.round(seconds);
+  if (sec < 60) return `${sec}s`;
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  if (sec < 3600) return s > 0 ? `${m}m ${s}s` : `${m}m`;
   const h = Math.floor(m / 60);
-  return `${h}h ${m % 60}m`;
+  if (sec < 86_400) return `${h}h ${m % 60}m`;
+  const d = Math.floor(h / 24);
+  return `${d}d ${h % 24}h`;
 }
 
 export function fmtNumber(n: number | null | undefined, decimals = 2): string {
