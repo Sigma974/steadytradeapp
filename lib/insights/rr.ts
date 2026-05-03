@@ -70,7 +70,7 @@ function testBasic(): void {
   const r = computeRRInsight(trades);
   assert(near(r.avgWinnerPnl, 15), `avgWinnerPnl=${r.avgWinnerPnl}`);
   assert(near(r.avgLoserPnl, 10), `avgLoserPnl=${r.avgLoserPnl}`);
-  assert(near(r.realizedRR, 1.5), `realizedRR=${r.realizedRR}`);
+  assert(near(r.realizedRR!, 1.5), `realizedRR=${r.realizedRR}`);
   assert(near(r.requiredRR, 1.0), `requiredRR=${r.requiredRR}`);
   assert(r.isAboveBreakeven === true, "should be above breakeven");
   console.log("PASS: basic RR");
@@ -82,7 +82,7 @@ function testBelowBreakeven(): void {
   const trades = [mk(5, 1), mk(-5, 2), mk(-5, 3)];
   const r = computeRRInsight(trades);
   assert(near(r.winRate, 1 / 3), `winRate=${r.winRate}`);
-  assert(near(r.realizedRR, 1.0), `realizedRR=${r.realizedRR}`);
+  assert(near(r.realizedRR!, 1.0), `realizedRR=${r.realizedRR}`);
   assert(r.isAboveBreakeven === false, "should be below breakeven");
   console.log("PASS: below breakeven");
 }
