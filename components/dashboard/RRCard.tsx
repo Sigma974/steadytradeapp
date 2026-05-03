@@ -26,12 +26,12 @@ export default function RRCard({ insight }: Props) {
   const missingLosers = loserCount === 0;
   const missingWinners = winnerCount === 0;
 
-  const rrDisplay = realizedRR > 0 ? `${fmtNumber(realizedRR)}R` : "—";
+  const rrDisplay = realizedRR != null && realizedRR > 0 ? `${fmtNumber(realizedRR)}R` : "—";
   const reqDisplay = requiredRR > 0 ? `${fmtNumber(requiredRR)}R` : "—";
 
   let insightText: string | null = null;
   if (!noData && !missingLosers && !missingWinners) {
-    const diff = realizedRR - requiredRR;
+    const diff = (realizedRR ?? 0) - requiredRR;
     if (isAboveBreakeven) {
       insightText = t("insightAbove", { rr: fmtNumber(realizedRR), wr: fmtPct(winRate) });
     } else {
@@ -59,7 +59,7 @@ export default function RRCard({ insight }: Props) {
             <div className="flex items-baseline gap-2 pb-1">
               <span
                 className={`text-3xl font-mono font-bold ${
-                  realizedRR > 0
+                  realizedRR != null && realizedRR > 0
                     ? pnlColor(isAboveBreakeven ? 1 : -1)
                     : "text-slate-500"
                 }`}

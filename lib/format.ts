@@ -74,6 +74,13 @@ export function fmtNumber(n: number | null | undefined, decimals = 2): string {
   });
 }
 
+// Safe toFixed — returns "—" for null/undefined/NaN/Infinity (e.g. Infinity serialized
+// to null by JSON.stringify, or missing fields from older cache entries).
+export function fmtFixed(n: number | null | undefined, decimals = 2, suffix = ""): string {
+  if (n == null || !isFinite(n)) return DASH;
+  return n.toFixed(decimals) + suffix;
+}
+
 // Returns a neutral color for null/undefined/NaN so callers never have to guard.
 export function pnlColor(n: number | null | undefined): string {
   if (n == null || !isFinite(n)) return "text-slate-400";
