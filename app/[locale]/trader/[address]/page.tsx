@@ -3,7 +3,10 @@ import { setRequestLocale } from "next-intl/server";
 import { getCachedSync } from "@/lib/db-cache";
 import { calculateSteadyScore } from "@/lib/insights/steadyScore";
 import { PERIODS, DEFAULT_DAYS } from "@/lib/periods";
+import { supabase as db } from "@/lib/supabase";
 import TraderClient from "./TraderClient";
+
+type TopTrader = { wallet_address: string; steady_score: number };
 
 const META_DAYS = DEFAULT_DAYS;
 
@@ -108,6 +111,28 @@ export default async function TraderPage({ params, searchParams }: Props) {
 
   const initialData = initialDays !== null ? await getCachedSync(address, initialDays) : null;
 
+  let topTraders: TopTrader[] = [];
+  try {
+    const { data: latestRow } = await db
+      .from("leaderboard_snapshots")
+      .select("snapshot_date")
+      .order("snapshot_date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (latestRow) {
+      const { data: rows } = await db
+        .from("leaderboard_snapshots")
+        .select("wallet_address, steady_score")
+        .eq("snapshot_date", latestRow.snapshot_date)
+        .order("rank", { ascending: true })
+        .limit(3);
+      if (rows) topTraders = rows;
+    }
+  } catch {
+    // Non-critical — modal shows no suggestions
+  }
+
   return (
     <TraderClient
       address={address}
@@ -115,6 +140,7 @@ export default async function TraderPage({ params, searchParams }: Props) {
       daysBack={initialDays}
       initialStart={initialStart}
       initialEnd={initialEnd}
+      topTraders={topTraders}
     />
   );
 }
