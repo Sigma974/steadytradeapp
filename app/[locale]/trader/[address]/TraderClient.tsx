@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import type { SyncData } from "@/lib/api-types";
-import { fmtPct, fmtCompact, fmtCompactNum, pnlColor } from "@/lib/format";
+import { fmtPct, fmtCompact, fmtCompactNum, fmtFixed, pnlColor } from "@/lib/format";
 import SiteHeader from "@/components/SiteHeader";
 import PeriodSelector from "@/components/PeriodSelector";
 import { useUserProfile } from "@/hooks/use-user-profile";
@@ -97,15 +97,15 @@ function CompareBar({ trader, mine }: { trader: SyncData; mine: SyncData }) {
     { label: t("compareTrades"), a: fmtCompactNum(trader.tradeCount), b: fmtCompactNum(mine.tradeCount) },
     {
       label: t("compareProfitFactor"),
-      a: trader.insights.general.profitFactor === Infinity ? "∞" : trader.insights.general.profitFactor.toFixed(2),
-      b: mine.insights.general.profitFactor === Infinity ? "∞" : mine.insights.general.profitFactor.toFixed(2),
+      a: trader.insights.general.profitFactor === Infinity ? "∞" : fmtFixed(trader.insights.general.profitFactor, 2),
+      b: mine.insights.general.profitFactor === Infinity ? "∞" : fmtFixed(mine.insights.general.profitFactor, 2),
       aClass: pnlColor(trader.insights.general.profitFactor - 1),
       bClass: pnlColor(mine.insights.general.profitFactor - 1),
     },
     {
       label: t("compareRR"),
-      a: `${trader.insights.rr.realizedRR.toFixed(2)}R`,
-      b: `${mine.insights.rr.realizedRR.toFixed(2)}R`,
+      a: fmtFixed(trader.insights.rr.realizedRR, 2, "R"),
+      b: fmtFixed(mine.insights.rr.realizedRR, 2, "R"),
     },
     {
       label: t("compareLongWR"),

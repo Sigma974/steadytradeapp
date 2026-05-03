@@ -1,10 +1,10 @@
 import { Trade } from "../trade-reconstruction";
 
 export interface RRInsight {
-  avgWinnerPnl: number;   // avg PnL of winning trades (positive)
-  avgLoserPnl: number;    // avg |PnL| of losing trades (positive)
-  realizedRR: number;     // avgWinnerPnl / avgLoserPnl
-  requiredRR: number;     // (1 − winRate) / winRate — breakeven at current WR
+  avgWinnerPnl: number;
+  avgLoserPnl: number;
+  realizedRR: number | null; // null when no losing trades (non-calculable)
+  requiredRR: number;        // (1 − winRate) / winRate — breakeven at current WR
   winRate: number;
   winnerCount: number;
   loserCount: number;
@@ -22,7 +22,7 @@ export function computeRRInsight(trades: Trade[]): RRInsight {
   const avgLoserPnl = Math.abs(avg(losers.map((t) => t.pnlNet)));
   const winRate = trades.length > 0 ? winners.length / trades.length : 0;
 
-  const realizedRR = avgLoserPnl > 0 ? avgWinnerPnl / avgLoserPnl : 0;
+  const realizedRR = avgLoserPnl > 0 ? avgWinnerPnl / avgLoserPnl : null;
   // Breakeven: winRate × win = (1 − winRate) × loss  ⟹  win/loss = (1−WR)/WR
   const requiredRR = winRate > 0 && winRate < 1 ? (1 - winRate) / winRate : 0;
 
@@ -34,7 +34,7 @@ export function computeRRInsight(trades: Trade[]): RRInsight {
     winRate,
     winnerCount: winners.length,
     loserCount: losers.length,
-    isAboveBreakeven: realizedRR >= requiredRR && requiredRR > 0,
+    isAboveBreakeven: realizedRR != null && realizedRR >= requiredRR && requiredRR > 0,
   };
 }
 
@@ -91,13 +91,13 @@ function testAllWinners(): void {
   const trades = [mk(10, 1), mk(20, 2)];
   const r = computeRRInsight(trades);
   assert(r.loserCount === 0, "no losers");
-  assert(r.realizedRR === 0, "RR=0 with no losers");
+  assert(r.realizedRR === null, "RR=null with no losers");
   console.log("PASS: all winners");
 }
 
 function testEmpty(): void {
   const r = computeRRInsight([]);
-  assert(r.realizedRR === 0, "empty → RR=0");
+  assert(r.realizedRR === null, "empty → RR=null");
   assert(r.requiredRR === 0, "empty → required=0");
   console.log("PASS: empty");
 }
