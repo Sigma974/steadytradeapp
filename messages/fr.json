@@ -87,7 +87,15 @@
     "tagline": "Analytiques Hyperliquid",
     "saveAnalysis": "Sauvegarder",
     "analysisSaved": "Analyse sauvegardée !",
-    "saveError": "Impossible de sauvegarder."
+    "saveError": "Impossible de sauvegarder.",
+    "compareWith": "Comparer avec un autre wallet",
+    "compareWithTitle": "Comparer avec un autre wallet",
+    "compareWithSubtitle": "Entre une adresse ou choisis un top trader ci-dessous",
+    "compareWithPlaceholder": "0x...",
+    "compareWithButton": "Comparer",
+    "compareWithTopTraders": "Top traders",
+    "compareWithInvalidAddress": "Adresse invalide",
+    "compareWithSelf": "C'est le wallet que tu consultes"
   },
   "Period": {
     "7d": "7 jours",

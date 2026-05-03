@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import type { SyncData } from "@/lib/api-types";
@@ -137,15 +138,130 @@ function CompareBar({ trader, mine }: { trader: SyncData; mine: SyncData }) {
   );
 }
 
+type TopTrader = { wallet_address: string; steady_score: number };
+
+// ── VS Compare modal ──────────────────────────────────────────────────────────
+
+const WALLET_RE = /^0x[a-fA-F0-9]{40}$/;
+
+function CompareWithModal({
+  currentAddress,
+  topTraders,
+  onClose,
+}: {
+  currentAddress: string;
+  topTraders: TopTrader[];
+  onClose: () => void;
+}) {
+  const t = useTranslations("TraderPage");
+  const locale = useLocale();
+  const router = useRouter();
+  const [input, setInput] = useState("");
+  const [inputError, setInputError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  function buildVsUrl(other: string) {
+    const base = locale === "fr" ? "/fr/vs" : "/vs";
+    return `${base}/${currentAddress}/${other}`;
+  }
+
+  function handleCompare() {
+    const trimmed = input.trim();
+    if (!WALLET_RE.test(trimmed)) {
+      setInputError(t("compareWithInvalidAddress"));
+      return;
+    }
+    router.push(buildVsUrl(trimmed));
+    onClose();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/70" onClick={onClose} />
+      <div className="relative z-10 bg-slate-900 border border-slate-700 rounded-xl p-6 w-full max-w-md mx-4 shadow-2xl">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-base font-semibold text-white">{t("compareWithTitle")}</h2>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="text-slate-500 hover:text-slate-300 text-xl leading-none transition-colors"
+          >
+            ×
+          </button>
+        </div>
+        <p className="text-xs text-slate-400 mb-4">{t("compareWithSubtitle")}</p>
+
+        <div className="space-y-2">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => { setInput(e.target.value); setInputError(null); }}
+            onKeyDown={(e) => { if (e.key === "Enter") handleCompare(); }}
+            placeholder={t("compareWithPlaceholder")}
+            autoFocus
+            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-slate-500"
+          />
+          {inputError && <p className="text-xs text-red-400">{inputError}</p>}
+          <button
+            onClick={handleCompare}
+            className="w-full text-sm font-semibold px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
+          >
+            {t("compareWithButton")}
+          </button>
+        </div>
+
+        {topTraders.length > 0 && (
+          <div className="mt-5">
+            <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">
+              {t("compareWithTopTraders")}
+            </p>
+            <div className="space-y-1.5">
+              {topTraders.map((trader) => {
+                const isSelf = trader.wallet_address.toLowerCase() === currentAddress.toLowerCase();
+                return (
+                  <button
+                    key={trader.wallet_address}
+                    disabled={isSelf}
+                    title={isSelf ? t("compareWithSelf") : undefined}
+                    onClick={() => { router.push(buildVsUrl(trader.wallet_address)); onClose(); }}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors ${
+                      isSelf
+                        ? "bg-slate-800/40 text-slate-600 cursor-not-allowed"
+                        : "bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer"
+                    }`}
+                  >
+                    <span className="font-mono">{abbrev(trader.wallet_address)}</span>
+                    <span className={`font-semibold ${isSelf ? "text-slate-600" : "text-indigo-400"}`}>
+                      {trader.steady_score}/100
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Props ─────────────────────────────────────────────────────────────────────
+
 interface Props {
   address: string;
   initialData: SyncData | null;
   daysBack: number | null;
   initialStart?: number;
   initialEnd?: number;
+  topTraders: TopTrader[];
 }
 
-export default function TraderClient({ address, initialData, daysBack: initialDays, initialStart, initialEnd }: Props) {
+export default function TraderClient({ address, initialData, daysBack: initialDays, initialStart, initialEnd, topTraders }: Props) {
   const t = useTranslations("TraderPage");
   const locale = useLocale();
   const homeHref = locale === "fr" ? "/fr" : "/";
@@ -194,6 +310,7 @@ export default function TraderClient({ address, initialData, daysBack: initialDa
   }
 
   const [copied, setCopied] = useState(false);
+  const [showVsModal, setShowVsModal] = useState(false);
   const [showCompare, setShowCompare] = useState(false);
   const [myData, setMyData] = useState<SyncData | null>(null);
   const [myAddress, setMyAddress] = useState<string | null>(null);
@@ -362,6 +479,13 @@ export default function TraderClient({ address, initialData, daysBack: initialDa
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
+      {showVsModal && (
+        <CompareWithModal
+          currentAddress={address}
+          topTraders={topTraders}
+          onClose={() => setShowVsModal(false)}
+        />
+      )}
       {saveToast && (
         <div className={`fixed bottom-5 right-5 z-50 px-4 py-2.5 rounded-lg text-sm font-medium shadow-xl ${
           saveToast.ok ? "bg-teal-500 text-white" : "bg-red-500/90 text-white"
@@ -388,6 +512,12 @@ export default function TraderClient({ address, initialData, daysBack: initialDa
             <Link href={tradesHref} className="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700">
               {t("viewTrades")}
             </Link>
+            <button
+              onClick={() => setShowVsModal(true)}
+              className="text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors font-semibold"
+            >
+              {t("compareWith")}
+            </button>
             {data && data.tradeCount > 0 && (
               <a href={buildTweet(data)} target="_blank" rel="noopener noreferrer" className="text-xs px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white transition-colors font-semibold">
                 {t("shareOnX")}
