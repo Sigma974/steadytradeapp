@@ -62,6 +62,12 @@ export async function syncTradesForSession(
   // emitAfter = startTime filters out any pre-window orphan closes
   const trades = reconstructTrades(fills, startTime);
 
+  // DEBUG — remove after confirming user_id flow
+  console.log("[SYNC DEBUG] userId:", userId);
+  console.log("[SYNC DEBUG] sessionId:", sessionId);
+  console.log("[SYNC DEBUG] wallet.address:", wallet.address);
+  console.log("[SYNC DEBUG] trades reconstructed:", trades.length);
+
   // 5. Delete existing trades for this session then upsert fresh (idempotent).
   //    DELETE first avoids stale rows when the reconstruction changes between polls.
   //    UPSERT with ON CONFLICT handles any race between concurrent sync calls.
@@ -96,6 +102,11 @@ export async function syncTradesForSession(
       is_winner: t.isWinner,
       num_fills: t.numFills,
     }));
+
+    console.log("[SYNC DEBUG] rows[0].user_id:", rows[0]?.user_id);
+    console.log("[SYNC DEBUG] rows[0].session_id:", rows[0]?.session_id);
+    console.log("[SYNC DEBUG] rows[0].coin:", rows[0]?.coin);
+    console.log("[SYNC DEBUG] rows[0].open_at:", rows[0]?.open_at);
 
     const { error: upsertError } = await supabase
       .from("trades")
