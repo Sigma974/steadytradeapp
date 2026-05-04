@@ -35,9 +35,16 @@ export default async function middleware(request: NextRequest) {
   await supabase.auth.getUser();
 
   // ── 2. Maintenance mode ─────────────────────────────────
-  // Only root paths are accessible — redirect everything else to locale homepage.
+  // Only root + auth paths are accessible — redirect everything else to locale homepage.
   const maintenancePath = request.nextUrl.pathname;
-  if (maintenancePath !== "/" && maintenancePath !== "/fr") {
+  const normalizedPath =
+    maintenancePath === "/fr"
+      ? "/"
+      : maintenancePath.startsWith("/fr/")
+        ? maintenancePath.slice(3)
+        : maintenancePath;
+  const allowedPaths = new Set(["/", "/signin", "/signup"]);
+  if (!allowedPaths.has(normalizedPath)) {
     const url = request.nextUrl.clone();
     url.pathname = maintenancePath.startsWith("/fr") ? "/fr" : "/";
     const redirect = NextResponse.redirect(url);

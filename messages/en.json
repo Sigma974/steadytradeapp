@@ -6,7 +6,36 @@
     "submit": "Notify me",
     "successMessage": "You're on the list. We'll reach out when we're ready.",
     "error": "Something went wrong. Try again.",
-    "networkError": "Network error. Try again."
+    "networkError": "Network error. Try again.",
+    "signIn": "Sign in"
+  },
+  "TriggerPage": {
+    "question": "Are you clean?",
+    "clean": "CLEAN",
+    "notClean": "NOT CLEAN",
+    "shortcuts": "C = Clean   ·   N = Not Clean",
+    "todayCount": "{count} triggers today",
+    "signOut": "Sign out"
+  },
+  "SignIn": {
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "loading": "Signing in…",
+    "noAccount": "No account?",
+    "signUp": "Sign up",
+    "errorInvalid": "Wrong email or password.",
+    "errorGeneric": "Something went wrong. Try again."
+  },
+  "SignUp": {
+    "email": "Email",
+    "password": "Password (min. 8 characters)",
+    "submit": "Create account",
+    "loading": "Creating account…",
+    "hasAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "errorEmailUsed": "This email is already registered.",
+    "errorGeneric": "Something went wrong. Try again."
   },
   "Navigation": {
     "leaderboard": "Leaderboard"

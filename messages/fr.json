@@ -6,7 +6,36 @@
     "submit": "M'avertir",
     "successMessage": "Tu es sur la liste. On te contacte dès qu'on est prêt.",
     "error": "Une erreur s'est produite. Réessaie.",
-    "networkError": "Erreur réseau. Réessaie."
+    "networkError": "Erreur réseau. Réessaie.",
+    "signIn": "Se connecter"
+  },
+  "TriggerPage": {
+    "question": "Es-tu propre ?",
+    "clean": "CLEAN",
+    "notClean": "NOT CLEAN",
+    "shortcuts": "C = Clean   ·   N = Not Clean",
+    "todayCount": "{count} triggers aujourd'hui",
+    "signOut": "Se déconnecter"
+  },
+  "SignIn": {
+    "email": "Email",
+    "password": "Mot de passe",
+    "submit": "Se connecter",
+    "loading": "Connexion…",
+    "noAccount": "Pas de compte ?",
+    "signUp": "Créer un compte",
+    "errorInvalid": "Email ou mot de passe incorrect.",
+    "errorGeneric": "Une erreur s'est produite. Réessaie."
+  },
+  "SignUp": {
+    "email": "Email",
+    "password": "Mot de passe (min. 8 caractères)",
+    "submit": "Créer un compte",
+    "loading": "Création du compte…",
+    "hasAccount": "Déjà un compte ?",
+    "signIn": "Se connecter",
+    "errorEmailUsed": "Cet email est déjà utilisé.",
+    "errorGeneric": "Une erreur s'est produite. Réessaie."
   },
   "Navigation": {
     "leaderboard": "Classement"
