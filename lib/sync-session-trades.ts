@@ -117,7 +117,7 @@ export async function syncTradesForSession(
 
     const { error: upsertError } = await supabase
       .from("trades")
-      .upsert(rows, { onConflict: "user_id,coin,open_at,side" });
+      .upsert(rows, { onConflict: "user_id,coin,open_at,side,close_at" });
 
     if (upsertError) {
       console.error("[sync] UPSERT trades failed:", upsertError.code, upsertError.message);
