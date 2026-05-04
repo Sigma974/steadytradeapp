@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowser } from "@/lib/supabase-browser";
@@ -14,6 +14,7 @@ type VerdictData = {
   notClean: number;
   cleanPct: number;
   insightKey: "solid" | "mixed" | "tough" | "empty";
+  longestNotCleanStreak: number;
 };
 
 interface Props {
@@ -31,10 +32,41 @@ function formatDuration(seconds: number): string {
   return `${s}s`;
 }
 
+function computeStats(triggers: { choice: Choice }[]) {
+  const total = triggers.length;
+  const cleanCount = triggers.filter((t) => t.choice === "clean").length;
+  const notCleanCount = total - cleanCount;
+  const cleanPct = total > 0 ? Math.round((cleanCount / total) * 100) : 0;
+
+  let currentStreakType: Choice | null = null;
+  let currentStreakCount = 0;
+  if (total > 0) {
+    currentStreakType = triggers[total - 1].choice;
+    for (let i = total - 1; i >= 0; i--) {
+      if (triggers[i].choice === currentStreakType) currentStreakCount++;
+      else break;
+    }
+  }
+
+  let longestNotCleanStreak = 0;
+  let runNc = 0;
+  for (const t of triggers) {
+    if (t.choice === "not_clean") {
+      runNc++;
+      if (runNc > longestNotCleanStreak) longestNotCleanStreak = runNc;
+    } else {
+      runNc = 0;
+    }
+  }
+
+  return { total, cleanCount, notCleanCount, cleanPct, currentStreakType, currentStreakCount, longestNotCleanStreak };
+}
+
 export default function SessionTriggerScreen({ sessionId, userId, startedAt }: Props) {
   const tt = useTranslations("TriggerPage");
   const ts = useTranslations("SessionPage");
   const tv = useTranslations("VerdictModal");
+  const tm = useTranslations("LiveMirror");
   const locale = useLocale();
   const router = useRouter();
 
@@ -43,6 +75,7 @@ export default function SessionTriggerScreen({ sessionId, userId, startedAt }: P
   const [flash, setFlash] = useState<Choice | null>(null);
   const [ending, setEnding] = useState(false);
   const [verdict, setVerdict] = useState<VerdictData | null>(null);
+  const [notCleanToday, setNotCleanToday] = useState(0);
 
   // Load existing triggers for this session (handles page refresh)
   useEffect(() => {
@@ -55,6 +88,22 @@ export default function SessionTriggerScreen({ sessionId, userId, startedAt }: P
         if (data) setTriggers(data as { choice: Choice }[]);
       });
   }, [sessionId]);
+
+  // Fetch today's Not Clean count across all sessions (once on mount)
+  useEffect(() => {
+    const supabase = createSupabaseBrowser();
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    supabase
+      .from("triggers")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("choice", "not_clean")
+      .gte("created_at", todayStart.toISOString())
+      .then(({ count }) => {
+        setNotCleanToday(count ?? 0);
+      });
+  }, [userId]);
 
   // Elapsed timer
   useEffect(() => {
@@ -69,6 +118,7 @@ export default function SessionTriggerScreen({ sessionId, userId, startedAt }: P
     (choice: Choice) => {
       setFlash(choice);
       setTriggers((prev) => [...prev, { choice }]);
+      if (choice === "not_clean") setNotCleanToday((n) => n + 1);
       setTimeout(() => setFlash(null), 200);
 
       const supabase = createSupabaseBrowser();
@@ -98,7 +148,11 @@ export default function SessionTriggerScreen({ sessionId, userId, startedAt }: P
     setEnding(true);
     try {
       const res = await fetch("/api/sessions/end", { method: "POST" });
-      if (res.ok) setVerdict(await res.json());
+      if (res.ok) {
+        const data = await res.json();
+        const { longestNotCleanStreak } = computeStats(triggers);
+        setVerdict({ ...data, longestNotCleanStreak });
+      }
     } catch (e) {
       console.error("[session] end failed:", e);
     } finally {
@@ -111,14 +165,37 @@ export default function SessionTriggerScreen({ sessionId, userId, startedAt }: P
     router.refresh();
   }
 
-  const total = triggers.length;
-  const clean = triggers.filter((t) => t.choice === "clean").length;
-  const cleanPct = total > 0 ? Math.round((clean / total) * 100) : 0;
+  const stats = useMemo(() => computeStats(triggers), [triggers]);
+  const { total, cleanPct, currentStreakType, currentStreakCount, longestNotCleanStreak } = stats;
 
   const statsLabel =
     total > 0
       ? ts("stats", { total, pct: cleanPct, duration: formatDuration(elapsed) })
       : formatDuration(elapsed);
+
+  // Live Mirror derived values
+  const notCleanStreak = currentStreakType === "not_clean" ? currentStreakCount : 0;
+  type MirrorCondition = "A" | "B" | "C" | "default";
+  const condition: MirrorCondition =
+    notCleanStreak >= 4 ? "A" :
+    notCleanStreak === 3 ? "B" :
+    notCleanStreak === 2 ? "C" :
+    "default";
+
+  const panelBg =
+    condition === "A" ? "bg-[#1a0505]" :
+    condition === "B" ? "bg-[#1a0a0a]" :
+    condition === "C" ? "bg-[#1a1505]" :
+    "bg-[#0a0a0a]";
+
+  const ratioColor =
+    total < 3 ? "text-slate-500" :
+    cleanPct >= 70 ? "text-emerald-400" :
+    cleanPct >= 50 ? "text-amber-400" :
+    "text-red-400";
+
+  const streakTypeLabel =
+    currentStreakType === "clean" ? tm("streakLabelClean") : tm("streakLabelNotClean");
 
   return (
     <div className="min-h-screen bg-black flex flex-col text-white">
@@ -157,6 +234,51 @@ export default function SessionTriggerScreen({ sessionId, userId, startedAt }: P
         <p className="text-xs text-slate-700 font-mono tracking-wide">{tt("shortcuts")}</p>
       </div>
 
+      {/* Live Mirror panel */}
+      <div
+        className={`w-full h-20 flex items-center px-6 border-t border-slate-900 transition-colors duration-300 ${panelBg}`}
+      >
+        {/* Left: trigger count */}
+        <div className="w-32 shrink-0">
+          <p className="text-xs text-slate-500 font-mono">
+            {tm("triggersCount", { n: total })}
+          </p>
+        </div>
+
+        {/* Center: contextual message or ratio */}
+        <div className="flex-1 text-center">
+          {condition === "A" && (
+            <p className="text-xs text-red-400 font-mono">
+              {tm("condA", { n: notCleanStreak, longest: longestNotCleanStreak })}
+            </p>
+          )}
+          {condition === "B" && (
+            <p className="text-xs text-red-400 font-mono">
+              {tm("condB", { pct: 100 - cleanPct })}
+            </p>
+          )}
+          {condition === "C" && (
+            <p className="text-xs text-amber-400 font-mono">
+              {tm("condC", { n: notCleanToday })}
+            </p>
+          )}
+          {condition === "default" && (
+            <p className={`text-sm font-semibold ${ratioColor}`}>
+              {total >= 3 ? tm("ratioPct", { pct: cleanPct }) : tm("noData")}
+            </p>
+          )}
+        </div>
+
+        {/* Right: streak */}
+        <div className="w-40 shrink-0 text-right">
+          <p className="text-xs text-slate-500 font-mono">
+            {total > 0
+              ? tm("streakLabel", { type: streakTypeLabel, n: currentStreakCount })
+              : tm("streakNone")}
+          </p>
+        </div>
+      </div>
+
       {/* Verdict modal */}
       {verdict && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4">
@@ -185,6 +307,12 @@ export default function SessionTriggerScreen({ sessionId, userId, startedAt }: P
                   {verdict.notClean} ({verdict.total > 0 ? 100 - verdict.cleanPct : 0}%)
                 </span>
               </div>
+              {verdict.longestNotCleanStreak >= 2 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">{tv("longestNotCleanStreakLabel")}</span>
+                  <span className="font-semibold text-red-400">{verdict.longestNotCleanStreak}</span>
+                </div>
+              )}
             </div>
 
             <div className="bg-slate-900 rounded-xl px-4 py-3 text-sm text-slate-300 border-t border-slate-800">

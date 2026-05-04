@@ -31,7 +31,20 @@
     "insightMixed": "Session mitigée. {n} Not Clean à analyser.",
     "insightTough": "Session difficile. Pense à lever le pied demain.",
     "insightEmpty": "Session vide. Peut-être la prochaine fois.",
-    "backToDashboard": "Retour au tableau de bord"
+    "backToDashboard": "Retour au tableau de bord",
+    "longestNotCleanStreakLabel": "Plus longue série Not Clean"
+  },
+  "LiveMirror": {
+    "triggersCount": "{n} triggers",
+    "noData": "—",
+    "ratioPct": "{pct}% clean",
+    "streakLabel": "Dernier : {type} · {n} de suite",
+    "streakLabelClean": "Clean",
+    "streakLabelNotClean": "Not Clean",
+    "streakNone": "—",
+    "condA": "{n} Not Clean de suite · Plus longue série : {longest}",
+    "condB": "3 Not Clean de suite · Tu es à {pct}% Not Clean cette session",
+    "condC": "2 Not Clean de suite · ton {n}ème Not Clean aujourd'hui"
   },
   "TriggerPage": {
     "question": "Es-tu propre ?",

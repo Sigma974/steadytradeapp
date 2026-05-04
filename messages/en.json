@@ -31,7 +31,20 @@
     "insightMixed": "Mixed session. {n} Not Clean trades to learn from.",
     "insightTough": "Tough session. Consider stepping back tomorrow.",
     "insightEmpty": "Empty session. Maybe next time.",
-    "backToDashboard": "Back to dashboard"
+    "backToDashboard": "Back to dashboard",
+    "longestNotCleanStreakLabel": "Longest Not Clean streak"
+  },
+  "LiveMirror": {
+    "triggersCount": "{n} triggers",
+    "noData": "—",
+    "ratioPct": "{pct}% clean",
+    "streakLabel": "Last: {type} · {n} in a row",
+    "streakLabelClean": "Clean",
+    "streakLabelNotClean": "Not Clean",
+    "streakNone": "—",
+    "condA": "{n} Not Clean in a row · Longest this session: {longest}",
+    "condB": "3 Not Clean in a row · You're {pct}% Not Clean this session",
+    "condC": "2 Not Clean in a row · your {n}th Not Clean today"
   },
   "TriggerPage": {
     "question": "Are you clean?",
