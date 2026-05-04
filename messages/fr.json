@@ -9,6 +9,30 @@
     "networkError": "Erreur réseau. Réessaie.",
     "signIn": "Se connecter"
   },
+  "Dashboard": {
+    "newSession": "Nouvelle session",
+    "resumeSession": "Reprendre la session",
+    "startedAgo": "Démarrée il y a {time}",
+    "noSessions": "Aucune session pour l'instant. Lance ta première.",
+    "signOut": "Se déconnecter",
+    "triggers": "triggers",
+    "clean": "Clean"
+  },
+  "SessionPage": {
+    "endSession": "Terminer la session",
+    "stats": "{total} triggers · {pct}% clean · {duration}"
+  },
+  "VerdictModal": {
+    "title": "Session terminée",
+    "total": "Total",
+    "clean": "Clean",
+    "notClean": "Not Clean",
+    "insightSolid": "Discipline solide aujourd'hui.",
+    "insightMixed": "Session mitigée. {n} Not Clean à analyser.",
+    "insightTough": "Session difficile. Pense à lever le pied demain.",
+    "insightEmpty": "Session vide. Peut-être la prochaine fois.",
+    "backToDashboard": "Retour au tableau de bord"
+  },
   "TriggerPage": {
     "question": "Es-tu propre ?",
     "clean": "CLEAN",

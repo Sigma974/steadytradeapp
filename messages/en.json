@@ -9,6 +9,30 @@
     "networkError": "Network error. Try again.",
     "signIn": "Sign in"
   },
+  "Dashboard": {
+    "newSession": "New session",
+    "resumeSession": "Resume session",
+    "startedAgo": "Started {time} ago",
+    "noSessions": "No sessions yet. Start your first one.",
+    "signOut": "Sign out",
+    "triggers": "triggers",
+    "clean": "Clean"
+  },
+  "SessionPage": {
+    "endSession": "End session",
+    "stats": "{total} triggers · {pct}% clean · {duration}"
+  },
+  "VerdictModal": {
+    "title": "Session ended",
+    "total": "Total",
+    "clean": "Clean",
+    "notClean": "Not Clean",
+    "insightSolid": "Solid discipline today.",
+    "insightMixed": "Mixed session. {n} Not Clean trades to learn from.",
+    "insightTough": "Tough session. Consider stepping back tomorrow.",
+    "insightEmpty": "Empty session. Maybe next time.",
+    "backToDashboard": "Back to dashboard"
+  },
   "TriggerPage": {
     "question": "Are you clean?",
     "clean": "CLEAN",

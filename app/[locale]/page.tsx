@@ -1,8 +1,18 @@
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { setRequestLocale } from "next-intl/server";
-import TriggerScreen from "@/components/TriggerScreen";
 import RebuildPage from "@/components/RebuildPage";
+import Dashboard from "@/components/Dashboard";
+
+type SessionSummary = {
+  id: string;
+  started_at: string;
+  ended_at: string;
+  total: number;
+  clean: number;
+};
+
+type ActiveSession = { id: string; started_at: string } | null;
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -16,7 +26,58 @@ export default async function Home({ params }: Props) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
   );
-  const { data: { user } } = await supabase.auth.getUser();
 
-  return user ? <TriggerScreen userId={user.id} /> : <RebuildPage />;
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return <RebuildPage />;
+
+  // Active session + past sessions fetched in parallel
+  const [activeResult, pastResult] = await Promise.all([
+    supabase
+      .from("sessions")
+      .select("id, started_at")
+      .eq("user_id", user.id)
+      .is("ended_at", null)
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("sessions")
+      .select("id, started_at, ended_at")
+      .eq("user_id", user.id)
+      .not("ended_at", "is", null)
+      .order("started_at", { ascending: false })
+      .limit(10),
+  ]);
+
+  const activeSession: ActiveSession = activeResult.data ?? null;
+  const sessionsRaw = pastResult.data ?? [];
+
+  // Fetch trigger counts for completed sessions
+  const sessionIds = sessionsRaw.map((s) => s.id);
+  const triggersBySid = new Map<string, { clean: number; total: number }>();
+
+  if (sessionIds.length > 0) {
+    const { data: triggersRaw } = await supabase
+      .from("triggers")
+      .select("session_id, choice")
+      .in("session_id", sessionIds);
+
+    for (const t of triggersRaw ?? []) {
+      const curr = triggersBySid.get(t.session_id) ?? { clean: 0, total: 0 };
+      triggersBySid.set(t.session_id, {
+        total: curr.total + 1,
+        clean: curr.clean + (t.choice === "clean" ? 1 : 0),
+      });
+    }
+  }
+
+  const pastSessions: SessionSummary[] = sessionsRaw.map((s) => ({
+    id: s.id,
+    started_at: s.started_at,
+    ended_at: s.ended_at!,
+    total: triggersBySid.get(s.id)?.total ?? 0,
+    clean: triggersBySid.get(s.id)?.clean ?? 0,
+  }));
+
+  return <Dashboard activeSession={activeSession} pastSessions={pastSessions} />;
 }
