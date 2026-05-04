@@ -15,8 +15,42 @@
     "startedAgo": "Démarrée il y a {time}",
     "noSessions": "Aucune session pour l'instant. Lance ta première.",
     "signOut": "Se déconnecter",
+    "settings": "Paramètres",
     "triggers": "triggers",
     "clean": "Clean"
+  },
+  "PreSessionModal": {
+    "title": "Comment tu te sens ?",
+    "subtitle": "Sois honnête.",
+    "clean": "CLEAN",
+    "notClean": "NOT CLEAN",
+    "cancel": "Annuler",
+    "noWalletTitle": "Configure ton wallet d'abord",
+    "noWalletText": "Connecte ton wallet Hyperliquid pour activer le sync des trades.",
+    "noWalletCta": "Aller dans Paramètres"
+  },
+  "Settings": {
+    "title": "Paramètres",
+    "backToDashboard": "Retour au tableau de bord",
+    "walletSection": "Wallet Hyperliquid",
+    "addressLabel": "Adresse du wallet",
+    "addressPlaceholder": "0x...",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "saved": "Wallet enregistré",
+    "change": "Modifier",
+    "saveError": "Erreur lors de l'enregistrement. Réessaie.",
+    "invalidAddress": "Adresse invalide (0x suivi de 40 caractères hexadécimaux)",
+    "noWalletHint": "Entre ton adresse Hyperliquid pour synchroniser tes trades pendant les sessions."
+  },
+  "SessionScreen": {
+    "waiting": "En attente du premier trade…",
+    "startedClean": "Démarré : CLEAN",
+    "startedNotClean": "Démarré : NOT CLEAN",
+    "syncOk": "Synchronisé",
+    "syncPaused": "Sync en pause",
+    "noTrades": "—",
+    "endSession": "Terminer la session"
   },
   "SessionPage": {
     "endSession": "Terminer la session",
@@ -31,8 +65,16 @@
     "insightMixed": "Session mitigée. {n} Not Clean à analyser.",
     "insightTough": "Session difficile. Pense à lever le pied demain.",
     "insightEmpty": "Session vide. Peut-être la prochaine fois.",
+    "insightProfitable": "Session profitable.",
+    "insightLosing": "Session perdante. Analyse demain.",
     "backToDashboard": "Retour au tableau de bord",
-    "longestNotCleanStreakLabel": "Plus longue série Not Clean"
+    "longestNotCleanStreakLabel": "Plus longue série Not Clean",
+    "startChoice": "Tu as démarré",
+    "tradesLabel": "Trades",
+    "pnlLabel": "PnL",
+    "winRateLabel": "Win rate",
+    "largestWinLabel": "Meilleur trade",
+    "largestLossLabel": "Pire trade"
   },
   "LiveMirror": {
     "triggersCount": "{n} triggers",

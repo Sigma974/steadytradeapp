@@ -15,8 +15,42 @@
     "startedAgo": "Started {time} ago",
     "noSessions": "No sessions yet. Start your first one.",
     "signOut": "Sign out",
+    "settings": "Settings",
     "triggers": "triggers",
     "clean": "Clean"
+  },
+  "PreSessionModal": {
+    "title": "How are you feeling?",
+    "subtitle": "Be honest.",
+    "clean": "CLEAN",
+    "notClean": "NOT CLEAN",
+    "cancel": "Cancel",
+    "noWalletTitle": "Set up your wallet first",
+    "noWalletText": "Connect your Hyperliquid wallet to enable trade sync.",
+    "noWalletCta": "Go to Settings"
+  },
+  "Settings": {
+    "title": "Settings",
+    "backToDashboard": "Back to dashboard",
+    "walletSection": "Hyperliquid wallet",
+    "addressLabel": "Wallet address",
+    "addressPlaceholder": "0x...",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Wallet saved",
+    "change": "Change",
+    "saveError": "Failed to save wallet. Try again.",
+    "invalidAddress": "Invalid address (0x followed by 40 hex characters)",
+    "noWalletHint": "Enter your Hyperliquid wallet address to sync trades during sessions."
+  },
+  "SessionScreen": {
+    "waiting": "Waiting for first trade…",
+    "startedClean": "Started: CLEAN",
+    "startedNotClean": "Started: NOT CLEAN",
+    "syncOk": "Synced",
+    "syncPaused": "Sync paused",
+    "noTrades": "—",
+    "endSession": "End session"
   },
   "SessionPage": {
     "endSession": "End session",
@@ -31,8 +65,16 @@
     "insightMixed": "Mixed session. {n} Not Clean trades to learn from.",
     "insightTough": "Tough session. Consider stepping back tomorrow.",
     "insightEmpty": "Empty session. Maybe next time.",
+    "insightProfitable": "Profitable session.",
+    "insightLosing": "Losing session. Review tomorrow.",
     "backToDashboard": "Back to dashboard",
-    "longestNotCleanStreakLabel": "Longest Not Clean streak"
+    "longestNotCleanStreakLabel": "Longest Not Clean streak",
+    "startChoice": "You started",
+    "tradesLabel": "Trades",
+    "pnlLabel": "PnL",
+    "winRateLabel": "Win rate",
+    "largestWinLabel": "Largest win",
+    "largestLossLabel": "Largest loss"
   },
   "LiveMirror": {
     "triggersCount": "{n} triggers",

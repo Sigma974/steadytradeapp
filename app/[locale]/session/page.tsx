@@ -31,11 +31,23 @@ export default async function SessionPage({ params }: Props) {
 
   if (!activeSession) redirect(locale === "fr" ? "/fr" : "/");
 
+  // Fetch the session_start trigger to display initial choice in the mirror
+  const { data: startTrigger } = await supabase
+    .from("triggers")
+    .select("choice")
+    .eq("session_id", activeSession.id)
+    .eq("trigger_type", "session_start")
+    .limit(1)
+    .maybeSingle();
+
+  const startChoice = (startTrigger?.choice ?? "clean") as "clean" | "not_clean";
+
   return (
     <SessionTriggerScreen
       sessionId={activeSession.id}
       userId={user.id}
       startedAt={activeSession.started_at}
+      startChoice={startChoice}
     />
   );
 }

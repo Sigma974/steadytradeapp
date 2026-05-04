@@ -30,8 +30,8 @@ export default async function Home({ params }: Props) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return <RebuildPage />;
 
-  // Active session + past sessions fetched in parallel
-  const [activeResult, pastResult] = await Promise.all([
+  // Active session + past sessions + wallet fetched in parallel
+  const [activeResult, pastResult, walletResult] = await Promise.all([
     supabase
       .from("sessions")
       .select("id, started_at")
@@ -47,10 +47,16 @@ export default async function Home({ params }: Props) {
       .not("ended_at", "is", null)
       .order("started_at", { ascending: false })
       .limit(10),
+    supabase
+      .from("wallets")
+      .select("address")
+      .eq("user_id", user.id)
+      .maybeSingle(),
   ]);
 
   const activeSession: ActiveSession = activeResult.data ?? null;
   const sessionsRaw = pastResult.data ?? [];
+  const hasWallet = !!walletResult.data?.address;
 
   // Fetch trigger counts for completed sessions
   const sessionIds = sessionsRaw.map((s) => s.id);
@@ -79,5 +85,11 @@ export default async function Home({ params }: Props) {
     clean: triggersBySid.get(s.id)?.clean ?? 0,
   }));
 
-  return <Dashboard activeSession={activeSession} pastSessions={pastSessions} />;
+  return (
+    <Dashboard
+      activeSession={activeSession}
+      pastSessions={pastSessions}
+      hasWallet={hasWallet}
+    />
+  );
 }

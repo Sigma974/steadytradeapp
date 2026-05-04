@@ -1,59 +1,30 @@
-import type { Metadata } from "next";
-import { getTranslations, setRequestLocale } from "next-intl/server";
-import { createSupabaseServer } from "@/lib/supabase-server";
-import SettingsTabs from "./SettingsTabs";
+import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
+import { setRequestLocale } from "next-intl/server";
+import { redirect } from "next/navigation";
+import WalletSettings from "@/components/WalletSettings";
 
-type Props = {
-  params: Promise<{ locale: string }>;
-  searchParams: Promise<{ tab?: string }>;
-};
+type Props = { params: Promise<{ locale: string }> };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export default async function SettingsPage({ params }: Props) {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "SettingsPage" });
-  return { title: t("metaTitle") };
-}
-
-export default async function SettingsPage({ params, searchParams }: Props) {
-  const { locale } = await params;
-  const { tab } = await searchParams;
   setRequestLocale(locale);
 
-  const supabase = await createSupabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // Layout already redirects if not authenticated, but type-guard here
-  if (!user) return null;
-
-  const [{ data: profile }, { data: wallets }] = await Promise.all([
-    supabase
-      .from("user_profiles")
-      .select("username, profile_type, locale, subscription_tier, subscription_ends_at, onboarded_at")
-      .eq("id", user.id)
-      .single(),
-    supabase
-      .from("user_wallets")
-      .select("id, address, label, is_primary")
-      .eq("user_id", user.id)
-      .order("added_at", { ascending: true }),
-  ]);
-
-  return (
-    <SettingsTabs
-      userId={user.id}
-      email={user.email ?? ""}
-      profile={profile ?? {
-        username: null,
-        profile_type: null,
-        locale: "en",
-        subscription_tier: "free",
-        subscription_ends_at: null,
-        onboarded_at: null,
-      }}
-      wallets={wallets ?? []}
-      initialTab={tab ?? "profile"}
-    />
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
   );
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect(locale === "fr" ? "/fr/signin" : "/signin");
+
+  const { data: wallet } = await supabase
+    .from("wallets")
+    .select("address")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  return <WalletSettings currentAddress={wallet?.address ?? null} locale={locale} />;
 }

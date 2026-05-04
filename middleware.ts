@@ -43,7 +43,7 @@ export default async function middleware(request: NextRequest) {
       : maintenancePath.startsWith("/fr/")
         ? maintenancePath.slice(3)
         : maintenancePath;
-  const allowedPaths = new Set(["/", "/signin", "/signup", "/session"]);
+  const allowedPaths = new Set(["/", "/signin", "/signup", "/session", "/settings"]);
   if (!allowedPaths.has(normalizedPath)) {
     const url = request.nextUrl.clone();
     url.pathname = maintenancePath.startsWith("/fr") ? "/fr" : "/";

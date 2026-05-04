@@ -20,6 +20,7 @@ type ActiveSession = {
 interface Props {
   activeSession: ActiveSession;
   pastSessions: SessionSummary[];
+  hasWallet: boolean;
 }
 
 function formatDuration(startedAt: string, endedAt: string): string {
@@ -48,16 +49,17 @@ function computeAgo(startedAt: string): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
-export default function Dashboard({ activeSession, pastSessions }: Props) {
+export default function Dashboard({ activeSession, pastSessions, hasWallet }: Props) {
   const t = useTranslations("Dashboard");
+  const tp = useTranslations("PreSessionModal");
   const locale = useLocale();
 
-  const [starting, setStarting] = useState(false);
   const [agoText, setAgoText] = useState(() =>
     activeSession ? computeAgo(activeSession.started_at) : ""
   );
+  const [showModal, setShowModal] = useState(false);
+  const [modalStarting, setModalStarting] = useState<"clean" | "not_clean" | null>(null);
 
-  // Update "X ago" text every minute
   useEffect(() => {
     if (!activeSession) return;
     const id = setInterval(
@@ -68,6 +70,7 @@ export default function Dashboard({ activeSession, pastSessions }: Props) {
   }, [activeSession]);
 
   const sessionHref = locale === "fr" ? "/fr/session" : "/session";
+  const settingsHref = locale === "fr" ? "/fr/settings" : "/settings";
 
   async function handleSignOut() {
     const supabase = createSupabaseBrowser();
@@ -75,22 +78,24 @@ export default function Dashboard({ activeSession, pastSessions }: Props) {
     window.location.href = locale === "fr" ? "/fr" : "/";
   }
 
-  async function handleNewSession() {
-    setStarting(true);
+  async function handlePreSessionChoice(choice: "clean" | "not_clean") {
+    setModalStarting(choice);
     try {
-      const res = await fetch("/api/sessions/start", { method: "POST" });
+      const res = await fetch("/api/sessions/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ choice }),
+      });
       if (res.ok || res.status === 409) {
-        // Hard navigation — bypasses Next.js Router Cache which would replay
-        // the stale redirect from /session → / (no active session at load time).
         window.location.href = sessionHref;
       } else {
         const json = await res.json().catch(() => ({}));
         console.error("[session] start failed:", res.status, json);
-        setStarting(false);
+        setModalStarting(null);
       }
     } catch (e) {
       console.error("[session] start failed:", e);
-      setStarting(false);
+      setModalStarting(null);
     }
   }
 
@@ -99,12 +104,20 @@ export default function Dashboard({ activeSession, pastSessions }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-900">
         <span className="text-lg font-bold tracking-tight">Steady</span>
-        <button
-          onClick={handleSignOut}
-          className="text-xs text-slate-700 hover:text-slate-400 transition-colors"
-        >
-          {t("signOut")}
-        </button>
+        <div className="flex items-center gap-4">
+          <a
+            href={settingsHref}
+            className="text-xs text-slate-700 hover:text-slate-400 transition-colors"
+          >
+            {t("settings")}
+          </a>
+          <button
+            onClick={handleSignOut}
+            className="text-xs text-slate-700 hover:text-slate-400 transition-colors"
+          >
+            {t("signOut")}
+          </button>
+        </div>
       </div>
 
       {/* Main */}
@@ -126,11 +139,10 @@ export default function Dashboard({ activeSession, pastSessions }: Props) {
             </>
           ) : (
             <button
-              onClick={handleNewSession}
-              disabled={starting}
-              className="w-full max-w-xs py-5 rounded-2xl text-xl font-bold bg-emerald-700 hover:bg-emerald-600 transition-colors text-white disabled:opacity-60"
+              onClick={() => setShowModal(true)}
+              className="w-full max-w-xs py-5 rounded-2xl text-xl font-bold bg-emerald-700 hover:bg-emerald-600 transition-colors text-white"
             >
-              {starting ? "…" : t("newSession")}
+              {t("newSession")}
             </button>
           )}
         </div>
@@ -173,6 +185,66 @@ export default function Dashboard({ activeSession, pastSessions }: Props) {
           )}
         </div>
       </div>
+
+      {/* Pre-session modal */}
+      {showModal && (
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
+        >
+          <div className="bg-zinc-950 border border-slate-800 rounded-2xl p-8 max-w-sm w-full space-y-6">
+            {!hasWallet ? (
+              <>
+                <div className="text-center space-y-2">
+                  <h2 className="text-xl font-semibold">{tp("noWalletTitle")}</h2>
+                  <p className="text-sm text-slate-500">{tp("noWalletText")}</p>
+                </div>
+                <a
+                  href={settingsHref}
+                  className="block w-full text-center py-3 rounded-xl bg-slate-200 hover:bg-white text-slate-900 font-semibold text-sm transition-colors"
+                >
+                  {tp("noWalletCta")}
+                </a>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="w-full text-xs text-slate-600 hover:text-slate-400 transition-colors"
+                >
+                  {tp("cancel")}
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="text-center space-y-1">
+                  <h2 className="text-xl font-semibold">{tp("title")}</h2>
+                  <p className="text-sm text-slate-500">{tp("subtitle")}</p>
+                </div>
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => handlePreSessionChoice("clean")}
+                    disabled={modalStarting !== null}
+                    className="flex-1 py-8 rounded-2xl text-xl font-bold text-white bg-emerald-700 hover:bg-emerald-600 transition-colors disabled:opacity-60"
+                  >
+                    {modalStarting === "clean" ? "…" : tp("clean")}
+                  </button>
+                  <button
+                    onClick={() => handlePreSessionChoice("not_clean")}
+                    disabled={modalStarting !== null}
+                    className="flex-1 py-8 rounded-2xl text-xl font-bold text-white bg-red-800 hover:bg-red-700 transition-colors disabled:opacity-60"
+                  >
+                    {modalStarting === "not_clean" ? "…" : tp("notClean")}
+                  </button>
+                </div>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="w-full text-xs text-slate-600 hover:text-slate-400 transition-colors"
+                >
+                  {tp("cancel")}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

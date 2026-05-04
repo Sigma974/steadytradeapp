@@ -1,111 +1,73 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowser } from "@/lib/supabase-browser";
-
-type Choice = "clean" | "not_clean";
 
 type VerdictData = {
   durationSeconds: number;
-  total: number;
-  clean: number;
-  notClean: number;
-  cleanPct: number;
-  insightKey: "solid" | "mixed" | "tough" | "empty";
-  longestNotCleanStreak: number;
+  startChoice: "clean" | "not_clean";
+  count: number;
+  pnlUsd: number;
+  winRate: number;
+  largestWin: number;
+  largestLoss: number;
+  insightKey: "profitable" | "losing" | "empty";
+};
+
+type TradeStats = {
+  count: number;
+  pnlUsd: number;
+  winRate: number;
+  lastTrade: { symbol: string; side: string; pnlUsd: number; closedAt: string } | null;
 };
 
 interface Props {
   sessionId: string;
   userId: string;
   startedAt: string;
+  startChoice: "clean" | "not_clean";
 }
 
 function formatDuration(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
+  const total = Math.max(0, Math.floor(seconds));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
   if (h > 0) return `${h}h ${m}m`;
   if (m > 0) return `${m}m ${s}s`;
   return `${s}s`;
 }
 
-function computeStats(triggers: { choice: Choice }[]) {
-  const total = triggers.length;
-  const cleanCount = triggers.filter((t) => t.choice === "clean").length;
-  const notCleanCount = total - cleanCount;
-  const cleanPct = total > 0 ? Math.round((cleanCount / total) * 100) : 0;
-
-  let currentStreakType: Choice | null = null;
-  let currentStreakCount = 0;
-  if (total > 0) {
-    currentStreakType = triggers[total - 1].choice;
-    for (let i = total - 1; i >= 0; i--) {
-      if (triggers[i].choice === currentStreakType) currentStreakCount++;
-      else break;
-    }
-  }
-
-  let longestNotCleanStreak = 0;
-  let runNc = 0;
-  for (const t of triggers) {
-    if (t.choice === "not_clean") {
-      runNc++;
-      if (runNc > longestNotCleanStreak) longestNotCleanStreak = runNc;
-    } else {
-      runNc = 0;
-    }
-  }
-
-  return { total, cleanCount, notCleanCount, cleanPct, currentStreakType, currentStreakCount, longestNotCleanStreak };
+function formatPnl(usd: number): string {
+  const sign = usd >= 0 ? "+" : "";
+  return `${sign}$${Math.abs(usd).toFixed(2)}`;
 }
 
-export default function SessionTriggerScreen({ sessionId, userId, startedAt }: Props) {
-  const tt = useTranslations("TriggerPage");
-  const ts = useTranslations("SessionPage");
+function timeAgo(isoStr: string): string {
+  const diffMin = Math.floor((Date.now() - new Date(isoStr).getTime()) / 60000);
+  if (diffMin < 1) return "just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
+  return `${Math.floor(diffMin / 60)}h ago`;
+}
+
+export default function SessionTriggerScreen({
+  sessionId,
+  startedAt,
+  startChoice,
+}: Props) {
+  const ts = useTranslations("SessionScreen");
   const tv = useTranslations("VerdictModal");
-  const tm = useTranslations("LiveMirror");
   const locale = useLocale();
   const router = useRouter();
 
-  const [triggers, setTriggers] = useState<{ choice: Choice }[]>([]);
   const [elapsed, setElapsed] = useState(0);
-  const [flash, setFlash] = useState<Choice | null>(null);
+  const [tradeStats, setTradeStats] = useState<TradeStats | null>(null);
+  const [syncStatus, setSyncStatus] = useState<"synced" | "paused" | null>(null);
   const [ending, setEnding] = useState(false);
   const [verdict, setVerdict] = useState<VerdictData | null>(null);
-  const [notCleanToday, setNotCleanToday] = useState(0);
 
-  // Load existing triggers for this session (handles page refresh)
-  useEffect(() => {
-    const supabase = createSupabaseBrowser();
-    supabase
-      .from("triggers")
-      .select("choice")
-      .eq("session_id", sessionId)
-      .then(({ data }) => {
-        if (data) setTriggers(data as { choice: Choice }[]);
-      });
-  }, [sessionId]);
-
-  // Fetch today's Not Clean count across all sessions (once on mount)
-  useEffect(() => {
-    const supabase = createSupabaseBrowser();
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    supabase
-      .from("triggers")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .eq("choice", "not_clean")
-      .gte("created_at", todayStart.toISOString())
-      .then(({ count }) => {
-        setNotCleanToday(count ?? 0);
-      });
-  }, [userId]);
-
-  // Elapsed timer
+  // Elapsed timer — updates every second
   useEffect(() => {
     const start = new Date(startedAt).getTime();
     const tick = () => setElapsed(Math.floor((Date.now() - start) / 1000));
@@ -114,45 +76,37 @@ export default function SessionTriggerScreen({ sessionId, userId, startedAt }: P
     return () => clearInterval(id);
   }, [startedAt]);
 
-  const logTrigger = useCallback(
-    (choice: Choice) => {
-      setFlash(choice);
-      setTriggers((prev) => [...prev, { choice }]);
-      if (choice === "not_clean") setNotCleanToday((n) => n + 1);
-      setTimeout(() => setFlash(null), 200);
-
-      const supabase = createSupabaseBrowser();
-      supabase
-        .from("triggers")
-        .insert({ choice, user_id: userId, session_id: sessionId })
-        .then(({ error }) => {
-          if (error) console.error("[trigger] insert failed:", error.message);
-        });
-    },
-    [userId, sessionId]
-  );
-
+  // Polling: sync trades every 15 seconds
   useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if (verdict) return;
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if (e.key.toLowerCase() === "c") logTrigger("clean");
-      if (e.key.toLowerCase() === "n") logTrigger("not_clean");
+    let cancelled = false;
+
+    async function doSync() {
+      try {
+        const res = await fetch("/api/sessions/sync", { method: "POST" });
+        if (cancelled) return;
+        if (res.ok) {
+          const { stats } = await res.json();
+          setTradeStats(stats);
+          setSyncStatus("synced");
+        } else {
+          setSyncStatus("paused");
+        }
+      } catch {
+        if (!cancelled) setSyncStatus("paused");
+      }
     }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [logTrigger, verdict]);
+
+    doSync();
+    const id = setInterval(doSync, 15_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [sessionId]);
 
   async function handleEndSession() {
     if (ending) return;
     setEnding(true);
     try {
       const res = await fetch("/api/sessions/end", { method: "POST" });
-      if (res.ok) {
-        const data = await res.json();
-        const { longestNotCleanStreak } = computeStats(triggers);
-        setVerdict({ ...data, longestNotCleanStreak });
-      }
+      if (res.ok) setVerdict(await res.json());
     } catch (e) {
       console.error("[session] end failed:", e);
     } finally {
@@ -165,43 +119,37 @@ export default function SessionTriggerScreen({ sessionId, userId, startedAt }: P
     router.refresh();
   }
 
-  const stats = useMemo(() => computeStats(triggers), [triggers]);
-  const { total, cleanPct, currentStreakType, currentStreakCount, longestNotCleanStreak } = stats;
+  const startLabel =
+    startChoice === "clean"
+      ? ts("startedClean")
+      : ts("startedNotClean");
 
-  const statsLabel =
-    total > 0
-      ? ts("stats", { total, pct: cleanPct, duration: formatDuration(elapsed) })
-      : formatDuration(elapsed);
+  const lastTradeLabel = tradeStats?.lastTrade
+    ? `${tradeStats.lastTrade.side.toUpperCase()} ${tradeStats.lastTrade.symbol} · ${formatPnl(tradeStats.lastTrade.pnlUsd)} · ${timeAgo(tradeStats.lastTrade.closedAt)}`
+    : ts("noTrades");
 
-  // Live Mirror derived values
-  const notCleanStreak = currentStreakType === "not_clean" ? currentStreakCount : 0;
-  type MirrorCondition = "A" | "B" | "C" | "default";
-  const condition: MirrorCondition =
-    notCleanStreak >= 4 ? "A" :
-    notCleanStreak === 3 ? "B" :
-    notCleanStreak === 2 ? "C" :
-    "default";
+  const syncLabel =
+    syncStatus === "synced"
+      ? ts("syncOk")
+      : syncStatus === "paused"
+        ? ts("syncPaused")
+        : "…";
 
-  const panelBg =
-    condition === "A" ? "bg-[#1a0505]" :
-    condition === "B" ? "bg-[#1a0a0a]" :
-    condition === "C" ? "bg-[#1a1505]" :
-    "bg-[#0a0a0a]";
+  const syncColor =
+    syncStatus === "paused" ? "text-amber-500" : "text-slate-600";
 
-  const ratioColor =
-    total < 3 ? "text-slate-500" :
-    cleanPct >= 70 ? "text-emerald-400" :
-    cleanPct >= 50 ? "text-amber-400" :
-    "text-red-400";
-
-  const streakTypeLabel =
-    currentStreakType === "clean" ? tm("streakLabelClean") : tm("streakLabelNotClean");
+  const pnlColor =
+    tradeStats && tradeStats.pnlUsd > 0
+      ? "text-emerald-400"
+      : tradeStats && tradeStats.pnlUsd < 0
+        ? "text-red-400"
+        : "text-slate-400";
 
   return (
     <div className="min-h-screen bg-black flex flex-col text-white">
-      {/* Session header */}
+      {/* Header */}
       <div className="flex items-center justify-between px-6 py-4">
-        <p className="font-mono text-sm text-slate-500">{statsLabel}</p>
+        <span className="text-lg font-bold tracking-tight">Steady</span>
         <button
           onClick={handleEndSession}
           disabled={ending}
@@ -211,71 +159,40 @@ export default function SessionTriggerScreen({ sessionId, userId, startedAt }: P
         </button>
       </div>
 
-      {/* Trigger buttons */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-10">
-        <div className="flex gap-6">
-          <button
-            onClick={() => logTrigger("clean")}
-            className={`w-[280px] h-[180px] rounded-2xl text-3xl font-bold text-white
-              bg-emerald-700 hover:bg-emerald-600 transition-all duration-100
-              ${flash === "clean" ? "scale-105 brightness-150" : "scale-100 brightness-100"}`}
-          >
-            {tt("clean")}
-          </button>
-          <button
-            onClick={() => logTrigger("not_clean")}
-            className={`w-[280px] h-[180px] rounded-2xl text-3xl font-bold text-white
-              bg-red-800 hover:bg-red-700 transition-all duration-100
-              ${flash === "not_clean" ? "scale-105 brightness-150" : "scale-100 brightness-100"}`}
-          >
-            {tt("notClean")}
-          </button>
-        </div>
-        <p className="text-xs text-slate-700 font-mono tracking-wide">{tt("shortcuts")}</p>
+      {/* Main content — passive observation zone */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
+        {tradeStats && tradeStats.count > 0 ? (
+          <div className="text-center space-y-2">
+            <p className={`text-4xl font-bold tabular-nums ${pnlColor}`}>
+              {formatPnl(tradeStats.pnlUsd)}
+            </p>
+            <p className="text-sm text-slate-500 font-mono">
+              {tradeStats.count} {tradeStats.count === 1 ? "trade" : "trades"} · {tradeStats.winRate}% win
+            </p>
+          </div>
+        ) : (
+          <p className="text-slate-700 text-sm font-mono">{ts("waiting")}</p>
+        )}
       </div>
 
       {/* Live Mirror panel */}
-      <div
-        className={`w-full h-20 flex items-center px-6 border-t border-slate-900 transition-colors duration-300 ${panelBg}`}
-      >
-        {/* Left: trigger count */}
-        <div className="w-32 shrink-0">
-          <p className="text-xs text-slate-500 font-mono">
-            {tm("triggersCount", { n: total })}
+      <div className="w-full bg-[#0a0a0a] border-t border-slate-900 px-6 py-4 flex items-center gap-4">
+        {/* Left: start choice + duration */}
+        <div className="shrink-0 space-y-0.5">
+          <p className={`text-xs font-mono font-semibold ${startChoice === "clean" ? "text-emerald-500" : "text-red-500"}`}>
+            {startLabel}
           </p>
+          <p className="text-xs text-slate-600 font-mono">{formatDuration(elapsed)}</p>
         </div>
 
-        {/* Center: contextual message or ratio */}
+        {/* Center: last trade */}
         <div className="flex-1 text-center">
-          {condition === "A" && (
-            <p className="text-xs text-red-400 font-mono">
-              {tm("condA", { n: notCleanStreak, longest: longestNotCleanStreak })}
-            </p>
-          )}
-          {condition === "B" && (
-            <p className="text-xs text-red-400 font-mono">
-              {tm("condB", { pct: 100 - cleanPct })}
-            </p>
-          )}
-          {condition === "C" && (
-            <p className="text-xs text-amber-400 font-mono">
-              {tm("condC", { n: notCleanToday })}
-            </p>
-          )}
-          {condition === "default" && (
-            <p className={`text-sm font-semibold ${ratioColor}`}>
-              {total >= 3 ? tm("ratioPct", { pct: cleanPct }) : tm("noData")}
-            </p>
-          )}
+          <p className="text-xs text-slate-500 font-mono truncate">{lastTradeLabel}</p>
         </div>
 
-        {/* Right: streak */}
-        <div className="w-40 shrink-0 text-right">
-          <p className="text-xs text-slate-500 font-mono">
-            {total > 0
-              ? tm("streakLabel", { type: streakTypeLabel, n: currentStreakCount })
-              : tm("streakNone")}
-          </p>
+        {/* Right: sync status */}
+        <div className="shrink-0 text-right">
+          <p className={`text-xs font-mono ${syncColor}`}>{syncLabel}</p>
         </div>
       </div>
 
@@ -292,33 +209,44 @@ export default function SessionTriggerScreen({ sessionId, userId, startedAt }: P
 
             <div className="space-y-3 border-t border-slate-800 pt-4">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">{tv("total")}</span>
-                <span className="font-semibold">{verdict.total}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-emerald-400">{tv("clean")}</span>
-                <span className="font-semibold text-emerald-400">
-                  {verdict.clean} ({verdict.cleanPct}%)
+                <span className="text-slate-400">{tv("startChoice")}</span>
+                <span className={`font-semibold ${verdict.startChoice === "clean" ? "text-emerald-400" : "text-red-400"}`}>
+                  {verdict.startChoice === "clean" ? "CLEAN" : "NOT CLEAN"}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-red-400">{tv("notClean")}</span>
-                <span className="font-semibold text-red-400">
-                  {verdict.notClean} ({verdict.total > 0 ? 100 - verdict.cleanPct : 0}%)
+                <span className="text-slate-400">{tv("tradesLabel")}</span>
+                <span className="font-semibold">{verdict.count}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-400">{tv("pnlLabel")}</span>
+                <span className={`font-semibold ${verdict.count > 0 ? (verdict.pnlUsd >= 0 ? "text-emerald-400" : "text-red-400") : "text-slate-600"}`}>
+                  {verdict.count > 0 ? formatPnl(verdict.pnlUsd) : "—"}
                 </span>
               </div>
-              {verdict.longestNotCleanStreak >= 2 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">{tv("longestNotCleanStreakLabel")}</span>
-                  <span className="font-semibold text-red-400">{verdict.longestNotCleanStreak}</span>
-                </div>
-              )}
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-400">{tv("winRateLabel")}</span>
+                <span className="font-semibold">
+                  {verdict.count > 0 ? `${verdict.winRate}%` : "—"}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-400">{tv("largestWinLabel")}</span>
+                <span className={`font-semibold ${verdict.largestWin > 0 ? "text-emerald-400" : "text-slate-600"}`}>
+                  {verdict.count > 0 && verdict.largestWin > 0 ? formatPnl(verdict.largestWin) : "—"}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-400">{tv("largestLossLabel")}</span>
+                <span className={`font-semibold ${verdict.largestLoss < 0 ? "text-red-400" : "text-slate-600"}`}>
+                  {verdict.count > 0 && verdict.largestLoss < 0 ? formatPnl(verdict.largestLoss) : "—"}
+                </span>
+              </div>
             </div>
 
-            <div className="bg-slate-900 rounded-xl px-4 py-3 text-sm text-slate-300 border-t border-slate-800">
-              {verdict.insightKey === "solid" && tv("insightSolid")}
-              {verdict.insightKey === "mixed" && tv("insightMixed", { n: verdict.notClean })}
-              {verdict.insightKey === "tough" && tv("insightTough")}
+            <div className="bg-slate-900 rounded-xl px-4 py-3 text-sm text-slate-300">
+              {verdict.insightKey === "profitable" && tv("insightProfitable")}
+              {verdict.insightKey === "losing" && tv("insightLosing")}
               {verdict.insightKey === "empty" && tv("insightEmpty")}
             </div>
 
