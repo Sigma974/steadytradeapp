@@ -34,7 +34,20 @@ export default async function middleware(request: NextRequest) {
   // Refresh session — important: do not remove this call
   await supabase.auth.getUser();
 
-  // ── 2. IP-based locale redirect (first visit only) ───────
+  // ── 2. Maintenance mode ─────────────────────────────────
+  // Only root paths are accessible — redirect everything else to locale homepage.
+  const maintenancePath = request.nextUrl.pathname;
+  if (maintenancePath !== "/" && maintenancePath !== "/fr") {
+    const url = request.nextUrl.clone();
+    url.pathname = maintenancePath.startsWith("/fr") ? "/fr" : "/";
+    const redirect = NextResponse.redirect(url);
+    response.cookies.getAll().forEach(({ name, value }) => {
+      redirect.cookies.set(name, value);
+    });
+    return redirect;
+  }
+
+  // ── 3. IP-based locale redirect (first visit only) ───────
   const cookieName = "NEXT_LOCALE";
   const hasLocaleCookie = request.cookies.has(cookieName);
 
@@ -58,7 +71,7 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
-  // ── 3. next-intl routing ─────────────────────────────────
+  // ── 4. next-intl routing ─────────────────────────────────
   const intlResponse = intlMiddleware(request);
 
   // Copy auth cookies onto the intl response

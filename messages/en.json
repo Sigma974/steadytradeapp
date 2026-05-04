@@ -1,4 +1,13 @@
 {
+  "RebuildPage": {
+    "title": "Steady is being rebuilt.",
+    "subtitle": "A new way to trade is coming. Soon.",
+    "cta": "Get notified",
+    "submit": "Notify me",
+    "successMessage": "You're on the list. We'll reach out when we're ready.",
+    "error": "Something went wrong. Try again.",
+    "networkError": "Network error. Try again."
+  },
   "Navigation": {
     "leaderboard": "Leaderboard"
   },

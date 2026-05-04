@@ -1,4 +1,13 @@
 {
+  "RebuildPage": {
+    "title": "Steady est en reconstruction.",
+    "subtitle": "Une nouvelle façon de trader arrive. Bientôt.",
+    "cta": "Être notifié",
+    "submit": "M'avertir",
+    "successMessage": "Tu es sur la liste. On te contacte dès qu'on est prêt.",
+    "error": "Une erreur s'est produite. Réessaie.",
+    "networkError": "Erreur réseau. Réessaie."
+  },
   "Navigation": {
     "leaderboard": "Classement"
   },
