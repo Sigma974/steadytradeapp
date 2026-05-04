@@ -103,10 +103,17 @@ export async function syncTradesForSession(
       num_fills: t.numFills,
     }));
 
-    console.log("[SYNC DEBUG] rows[0].user_id:", rows[0]?.user_id);
-    console.log("[SYNC DEBUG] rows[0].session_id:", rows[0]?.session_id);
-    console.log("[SYNC DEBUG] rows[0].coin:", rows[0]?.coin);
-    console.log("[SYNC DEBUG] rows[0].open_at:", rows[0]?.open_at);
+    console.log("[SYNC DEBUG] rows count:", rows.length);
+    console.log("[SYNC DEBUG] rows preview:", JSON.stringify(
+      rows.map(r => ({
+        user_id: r.user_id,
+        coin: r.coin,
+        side: r.side,
+        open_at: r.open_at,
+        close_at: r.close_at,
+        pnl_net: r.pnl_net,
+      })), null, 2
+    ));
 
     const { error: upsertError } = await supabase
       .from("trades")
