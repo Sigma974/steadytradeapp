@@ -62,30 +62,49 @@ export async function syncTradesForSession(
   // emitAfter = startTime filters out any pre-window orphan closes
   const trades = reconstructTrades(fills, startTime);
 
-  // 5. Delete existing trades for this session and reinsert (idempotent)
-  await supabase
+  // 5. Delete existing trades for this session then upsert fresh (idempotent).
+  //    DELETE first avoids stale rows when the reconstruction changes between polls.
+  //    UPSERT with ON CONFLICT handles any race between concurrent sync calls.
+  const { error: deleteError } = await supabase
     .from("trades")
     .delete()
     .eq("session_id", sessionId)
     .eq("user_id", userId);
+
+  if (deleteError) {
+    console.error("[sync] DELETE trades failed:", deleteError.code, deleteError.message);
+    return { ok: false, rateLimited: false, error: `delete_failed: ${deleteError.message}` };
+  }
 
   if (trades.length > 0) {
     const rows = trades.map((t) => ({
       user_id: userId,
       session_id: sessionId,
       wallet_address: wallet.address,
-      symbol: t.coin,
+      coin: t.coin,
       side: t.side,
       size: t.size,
-      entry_price: t.avgEntryPx,
-      exit_price: t.avgExitPx,
-      entry_time: t.openAt.toISOString(),
-      exit_time: t.closeAt.toISOString(),
-      pnl_usd: t.pnlNet,
-      fees_usd: t.feesTotal,
-      is_closed: true,
+      avg_entry_px: t.avgEntryPx,
+      avg_exit_px: t.avgExitPx,
+      open_at: t.openAt.toISOString(),
+      close_at: t.closeAt.toISOString(),
+      duration_seconds: t.durationSeconds,
+      notional: t.notional,
+      realized_pnl: t.realizedPnl,
+      fees_total: t.feesTotal,
+      pnl_net: t.pnlNet,
+      is_winner: t.isWinner,
+      num_fills: t.numFills,
     }));
-    await supabase.from("trades").insert(rows);
+
+    const { error: upsertError } = await supabase
+      .from("trades")
+      .upsert(rows, { onConflict: "user_id,coin,open_at,side" });
+
+    if (upsertError) {
+      console.error("[sync] UPSERT trades failed:", upsertError.code, upsertError.message);
+      return { ok: false, rateLimited: false, error: `upsert_failed: ${upsertError.message}` };
+    }
   }
 
   return { ok: true, stats: computeStats(trades) };

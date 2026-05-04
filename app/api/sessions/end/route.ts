@@ -51,20 +51,24 @@ export async function POST(_req: NextRequest) {
     ]);
 
     // Compute stats from DB (handles both sync success and timeout gracefully)
-    const { data: tradesRaw } = await supabase
+    const { data: tradesRaw, error: tradesError } = await supabase
       .from("trades")
-      .select("pnl_usd, symbol, side, exit_time")
-      .eq("session_id", session.id)
-      .eq("is_closed", true);
+      .select("pnl_net, coin, side, close_at")
+      .eq("session_id", session.id);
+
+    if (tradesError) {
+      console.error("[sessions/end] SELECT trades failed:", tradesError.code, tradesError.message);
+      return NextResponse.json({ error: `db_read_failed: ${tradesError.message}` }, { status: 500 });
+    }
 
     const trades = tradesRaw ?? [];
     const count = trades.length;
-    const pnlUsd = Math.round(trades.reduce((s, t) => s + (t.pnl_usd ?? 0), 0) * 100) / 100;
-    const winners = trades.filter((t) => (t.pnl_usd ?? 0) > 0).length;
+    const pnlUsd = Math.round(trades.reduce((s, t) => s + (t.pnl_net ?? 0), 0) * 100) / 100;
+    const winners = trades.filter((t) => (t.pnl_net ?? 0) > 0).length;
     const winRate = count > 0 ? Math.round((winners / count) * 100) : 0;
 
-    const winPnls = trades.filter((t) => (t.pnl_usd ?? 0) > 0).map((t) => t.pnl_usd ?? 0);
-    const lossPnls = trades.filter((t) => (t.pnl_usd ?? 0) < 0).map((t) => t.pnl_usd ?? 0);
+    const winPnls = trades.filter((t) => (t.pnl_net ?? 0) > 0).map((t) => t.pnl_net ?? 0);
+    const lossPnls = trades.filter((t) => (t.pnl_net ?? 0) < 0).map((t) => t.pnl_net ?? 0);
     const largestWin = winPnls.length > 0 ? Math.round(Math.max(...winPnls) * 100) / 100 : 0;
     const largestLoss = lossPnls.length > 0 ? Math.round(Math.min(...lossPnls) * 100) / 100 : 0;
 
