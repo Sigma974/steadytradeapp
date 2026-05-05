@@ -74,7 +74,16 @@
     "pnlLabel": "PnL",
     "winRateLabel": "Win rate",
     "largestWinLabel": "Meilleur trade",
-    "largestLossLabel": "Pire trade"
+    "largestLossLabel": "Pire trade",
+    "reviewTitle": "Revoir tes trades",
+    "tagClean": "Clean",
+    "tagNotClean": "Not Clean",
+    "tagDontRemember": "Sais plus",
+    "taggedCount": "Taggés : {tagged} / {total} trades",
+    "cleanStat": "Clean : {n} trades · {pnl} PnL",
+    "notCleanStat": "Not Clean : {n} trades · {pnl} PnL",
+    "dontRememberStat": "Sais plus : {n} trades",
+    "stayedConsistent": "Tu es resté constant sur cette session"
   },
   "LiveMirror": {
     "triggersCount": "{n} triggers",

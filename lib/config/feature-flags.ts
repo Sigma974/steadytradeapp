@@ -1,0 +1,4 @@
+export const FEATURE_FLAGS = {
+  HISTORY_LIMIT_ENABLED: false,
+  FREE_TIER_HISTORY_LIMIT: 9999,
+} as const;

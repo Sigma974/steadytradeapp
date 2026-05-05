@@ -53,8 +53,9 @@ export async function POST(_req: NextRequest) {
     // Compute stats from DB (handles both sync success and timeout gracefully)
     const { data: tradesRaw, error: tradesError } = await supabase
       .from("trades")
-      .select("pnl_net, coin, side, close_at")
-      .eq("session_id", session.id);
+      .select("id, pnl_net, coin, side, close_at, tag")
+      .eq("session_id", session.id)
+      .order("close_at", { ascending: true });
 
     if (tradesError) {
       console.error("[sessions/end] SELECT trades failed:", tradesError.code, tradesError.message);
@@ -71,6 +72,14 @@ export async function POST(_req: NextRequest) {
     const lossPnls = trades.filter((t) => (t.pnl_net ?? 0) < 0).map((t) => t.pnl_net ?? 0);
     const largestWin = winPnls.length > 0 ? Math.round(Math.max(...winPnls) * 100) / 100 : 0;
     const largestLoss = lossPnls.length > 0 ? Math.round(Math.min(...lossPnls) * 100) / 100 : 0;
+
+    const tradeList = trades.map((t) => ({
+      id: t.id as string,
+      coin: t.coin as string,
+      side: t.side as string,
+      pnlNet: Math.round(((t.pnl_net ?? 0) as number) * 100) / 100,
+      tag: (t.tag ?? null) as "CLEAN" | "NOT_CLEAN" | "DONT_REMEMBER" | null,
+    }));
 
     const durationSeconds = Math.floor(
       (endedAt.getTime() - new Date(session.started_at).getTime()) / 1000
@@ -93,6 +102,7 @@ export async function POST(_req: NextRequest) {
       largestWin,
       largestLoss,
       insightKey,
+      trades: tradeList,
     });
   } catch (err) {
     console.error("[sessions/end] unexpected error:", err);

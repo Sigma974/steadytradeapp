@@ -4,6 +4,16 @@ import { useState, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 
+type TradeTag = "CLEAN" | "NOT_CLEAN" | "DONT_REMEMBER";
+
+type VerdictTrade = {
+  id: string;
+  coin: string;
+  side: string;
+  pnlNet: number;
+  tag: TradeTag | null;
+};
+
 type VerdictData = {
   durationSeconds: number;
   startChoice: "clean" | "not_clean";
@@ -13,6 +23,7 @@ type VerdictData = {
   largestWin: number;
   largestLoss: number;
   insightKey: "profitable" | "losing" | "empty";
+  trades: VerdictTrade[];
 };
 
 type TradeStats = {
@@ -66,6 +77,61 @@ export default function SessionTriggerScreen({
   const [syncStatus, setSyncStatus] = useState<"synced" | "paused" | null>(null);
   const [ending, setEnding] = useState(false);
   const [verdict, setVerdict] = useState<VerdictData | null>(null);
+  const [tagSaving, setTagSaving] = useState<Record<string, boolean>>({});
+
+  async function handleTag(tradeId: string, nextTag: TradeTag) {
+    if (!verdict) return;
+    const current = verdict.trades.find((t) => t.id === tradeId);
+    if (!current) return;
+    const optimistic = current.tag === nextTag ? null : nextTag;
+
+    setVerdict({
+      ...verdict,
+      trades: verdict.trades.map((t) =>
+        t.id === tradeId ? { ...t, tag: optimistic } : t
+      ),
+    });
+    setTagSaving((prev) => ({ ...prev, [tradeId]: true }));
+
+    try {
+      const res = await fetch(`/api/trades/${tradeId}/tag`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tag: optimistic }),
+      });
+      if (!res.ok) {
+        console.error("[verdict] tag failed", await res.text());
+        setVerdict((v) =>
+          v
+            ? {
+                ...v,
+                trades: v.trades.map((t) =>
+                  t.id === tradeId ? { ...t, tag: current.tag } : t
+                ),
+              }
+            : v
+        );
+      }
+    } catch (e) {
+      console.error("[verdict] tag error", e);
+      setVerdict((v) =>
+        v
+          ? {
+              ...v,
+              trades: v.trades.map((t) =>
+                t.id === tradeId ? { ...t, tag: current.tag } : t
+              ),
+            }
+          : v
+      );
+    } finally {
+      setTagSaving((prev) => {
+        const next = { ...prev };
+        delete next[tradeId];
+        return next;
+      });
+    }
+  }
 
   // Elapsed timer — updates every second
   useEffect(() => {
@@ -198,8 +264,8 @@ export default function SessionTriggerScreen({
 
       {/* Verdict modal */}
       {verdict && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4">
-          <div className="bg-zinc-950 border border-slate-800 rounded-2xl p-8 max-w-sm w-full space-y-6">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4 py-6 overflow-y-auto">
+          <div className="bg-zinc-950 border border-slate-800 rounded-2xl p-6 sm:p-8 max-w-md w-full space-y-6 my-auto">
             <div className="text-center space-y-1">
               <h2 className="text-xl font-semibold">{tv("title")}</h2>
               <p className="text-slate-500 font-mono text-sm">
@@ -249,6 +315,149 @@ export default function SessionTriggerScreen({
               {verdict.insightKey === "losing" && tv("insightLosing")}
               {verdict.insightKey === "empty" && tv("insightEmpty")}
             </div>
+
+            {verdict.trades.length > 0 && (
+              <div className="space-y-3 border-t border-slate-800 pt-4">
+                <h3 className="text-sm font-semibold text-slate-100">
+                  {tv("reviewTitle")}
+                </h3>
+                <ul className="space-y-2">
+                  {verdict.trades.map((trade, i) => (
+                    <li
+                      key={trade.id}
+                      className="bg-slate-900/60 rounded-lg px-3 py-2 space-y-2"
+                    >
+                      <div className="flex items-center justify-between gap-2 text-xs">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-slate-500 font-mono shrink-0">
+                            #{i + 1}
+                          </span>
+                          <span className="font-semibold text-slate-100 truncate">
+                            {trade.coin}
+                          </span>
+                          <span
+                            className={`font-mono font-semibold shrink-0 ${
+                              trade.side.toLowerCase() === "long"
+                                ? "text-emerald-400"
+                                : "text-red-400"
+                            }`}
+                          >
+                            {trade.side.toUpperCase()}
+                          </span>
+                        </div>
+                        <span
+                          className={`font-mono font-semibold shrink-0 ${
+                            trade.pnlNet > 0
+                              ? "text-emerald-400"
+                              : trade.pnlNet < 0
+                                ? "text-red-400"
+                                : "text-slate-400"
+                          }`}
+                        >
+                          {formatPnl(trade.pnlNet)}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {(
+                          [
+                            {
+                              key: "CLEAN" as TradeTag,
+                              label: tv("tagClean"),
+                              activeClass:
+                                "bg-emerald-500 text-emerald-950 border-emerald-500",
+                              idleClass:
+                                "border-slate-700 text-emerald-400 hover:border-emerald-500/60",
+                            },
+                            {
+                              key: "NOT_CLEAN" as TradeTag,
+                              label: tv("tagNotClean"),
+                              activeClass:
+                                "bg-red-500 text-red-950 border-red-500",
+                              idleClass:
+                                "border-slate-700 text-red-400 hover:border-red-500/60",
+                            },
+                            {
+                              key: "DONT_REMEMBER" as TradeTag,
+                              label: tv("tagDontRemember"),
+                              activeClass:
+                                "bg-slate-500 text-slate-950 border-slate-500",
+                              idleClass:
+                                "border-slate-700 text-slate-400 hover:border-slate-500/60",
+                            },
+                          ] as const
+                        ).map((opt) => {
+                          const active = trade.tag === opt.key;
+                          return (
+                            <button
+                              key={opt.key}
+                              type="button"
+                              role="radio"
+                              aria-checked={active}
+                              disabled={tagSaving[trade.id]}
+                              onClick={() => handleTag(trade.id, opt.key)}
+                              className={`text-xs font-semibold rounded-md border py-1.5 transition-colors disabled:opacity-50 ${
+                                active ? opt.activeClass : opt.idleClass
+                              }`}
+                            >
+                              {opt.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+
+                {(() => {
+                  const total = verdict.trades.length;
+                  const clean = verdict.trades.filter((t) => t.tag === "CLEAN");
+                  const notClean = verdict.trades.filter((t) => t.tag === "NOT_CLEAN");
+                  const dontRemember = verdict.trades.filter((t) => t.tag === "DONT_REMEMBER");
+                  const tagged = clean.length + notClean.length + dontRemember.length;
+                  const cleanPnl = Math.round(clean.reduce((s, t) => s + t.pnlNet, 0) * 100) / 100;
+                  const notCleanPnl = Math.round(notClean.reduce((s, t) => s + t.pnlNet, 0) * 100) / 100;
+                  const anyTag = tagged > 0;
+
+                  return (
+                    <div className="bg-slate-900/60 rounded-xl px-3 py-3 space-y-1 text-xs">
+                      <p className="text-slate-300 font-medium">
+                        {tv("taggedCount", { tagged, total })}
+                      </p>
+                      {anyTag && (
+                        <>
+                          {clean.length > 0 && (
+                            <p className="text-slate-400">
+                              {tv("cleanStat", {
+                                n: clean.length,
+                                pnl: formatPnl(cleanPnl),
+                              })}
+                            </p>
+                          )}
+                          {notClean.length > 0 && (
+                            <p className="text-slate-400">
+                              {tv("notCleanStat", {
+                                n: notClean.length,
+                                pnl: formatPnl(notCleanPnl),
+                              })}
+                            </p>
+                          )}
+                          {dontRemember.length > 0 && (
+                            <p className="text-slate-400">
+                              {tv("dontRememberStat", { n: dontRemember.length })}
+                            </p>
+                          )}
+                          {tagged === total && notClean.length === 0 && (
+                            <p className="text-emerald-400 font-medium pt-1">
+                              {tv("stayedConsistent")}
+                            </p>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
 
             <button
               onClick={handleBackToDashboard}
