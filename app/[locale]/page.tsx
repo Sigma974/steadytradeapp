@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { setRequestLocale } from "next-intl/server";
-import RebuildPage from "@/components/RebuildPage";
+import SteadyLanding from "@/components/SteadyLanding";
 import Dashboard from "@/components/Dashboard";
 
 type SessionSummary = {
@@ -28,7 +28,7 @@ export default async function Home({ params }: Props) {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return <RebuildPage />;
+  if (!user) return <SteadyLanding />;
 
   // Active session + past sessions + wallet fetched in parallel
   const [activeResult, pastResult, walletResult] = await Promise.all([
